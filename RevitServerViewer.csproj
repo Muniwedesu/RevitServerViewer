@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net7.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>x64</Platforms>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="H.Formatters" Version="2.1.0-dev.322" />
+      <PackageReference Include="H.Formatters.BinaryFormatter" Version="2.1.0-dev.322" />
+      <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+      <PackageReference Include="NetJSON" Version="1.4.4" />
+      <PackageReference Include="ReactiveUI" Version="19.5.72" />
+      <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
+      <PackageReference Include="ReactiveUI.WPF" Version="19.5.72" />
+      <PackageReference Include="WPF-UI" Version="3.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\PipesTutorial\IBS.IPC\IBS.IPC.csproj" />
+      <ProjectReference Include="..\..\RevitServerTool\RevitServerTool.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="H.Formatters">
+        <HintPath>F:\source\IBS.ClashGrouper\packages\H.Formatters.2.1.0-dev.322\lib\net451\H.Formatters.dll</HintPath>
+      </Reference>
+      <Reference Include="H.Pipes">
+        <HintPath>F:\source\IBS.ClashGrouper\packages\H.Pipes.2.1.0-dev.322\lib\net462\H.Pipes.dll</HintPath>
+      </Reference>
+      <Reference Include="RevitAPI">
+        <HintPath>H:\RevitApiDll\21\RevitAPI.dll</HintPath>
+        <Private>False</Private>
+      </Reference>
+    </ItemGroup>
+
+</Project>
