@@ -39,14 +39,11 @@ public class RevitServerService
 
     public void ClearDownloads() => this.Operations.Clear();
 
-    public IObservable<OperationStage> AddDownload(string modelPath)
+    public IObservable<OperationStage> AddDownload(string srcFile, string outFile, string outFolder)
     {
-        var outputFolder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\RS\{_dl.Host}\";
-        var paths = PathUtils.GetValidPaths(modelPath, outputFolder);
         var st = new Subject<OperationStage>();
         st.OnNext(OperationStage.Requested);
-        _downloads = _downloads.Concat(
-            Observable.Start(() => _dl.Download(paths.Source, paths.Destination, outputFolder, st), _queue));
+        _downloads = _downloads.Concat(Observable.Start(() => _dl.Download(srcFile, outFile, outFolder, st), _queue));
         return st;
     }
 

@@ -110,7 +110,7 @@ public class MainWindowViewModel : ReactiveObject
     }
 
     [Reactive] public bool IsStandalone { get; set; } = true;
-    
+
     private void SaveModels()
     {
         _rsSvc.ClearDownloads();
@@ -119,7 +119,16 @@ public class MainWindowViewModel : ReactiveObject
             .Where(m => m.IsSelected)
             .Select(x => x.FullName)
             .ToArray();
-        
-        _rsSvc.AddDownloads(modelPaths, ServerViewModel.SelectedServer, true);
+        //TODO: set destination folder
+        var outputFolder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\RS\{SelectedServer}\";
+
+        foreach (var sourcePath in modelPaths)
+        {
+            var op = new ModelProcessViewModel(sourcePath, outputFolder);
+        }
+        //TODO: create task, next will be created based on result of that one
+
+
+        // _rsSvc.AddDownloads(modelPaths, ServerViewModel.SelectedServer, true);
     }
 }
