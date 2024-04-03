@@ -45,7 +45,7 @@ public static class PathUtils
         if (string.IsNullOrEmpty(destination))
         {
             destination = Path.Combine(PersonalFolder()
-                , Path.GetDirectoryName(modelPath.Replace('/', '\\'))!
+                , Path.GetDirectoryName($@"{modelPath.Replace('/', '\\')}")!
                 , fileName);
         }
         else

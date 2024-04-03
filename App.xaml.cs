@@ -22,6 +22,21 @@ public partial class App : Application
         Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetExecutingAssembly());
         Locator.CurrentMutable.RegisterLazySingleton(() => new RevitServerService());
         Locator.CurrentMutable.RegisterConstant(new IpcService());
+        var pipes = H.Pipes.PipeWatcher.GetActivePipes()
+            .Where(x => !(x.Contains("jetbrains")
+                          || x.Contains("mojo")
+                          || x.Contains("NvMessage")
+                          || x.Contains("crashpad")
+                          || x.Contains("cubeb")
+                          || x.Contains("dotnet-diagnostic")
+                          || x.Contains("pgsignal")
+                          || x.Contains("Winsock2")
+                          || x.Contains("Zoom")
+                          || x.Contains("AppContracts_")
+                          || x.Contains("pgsignal")
+                          || (x.Contains("gecko"))
+                ))
+            .OrderBy(x => x).ToArray();
     }
 
     private Assembly? LoadRevitApi(object? sender, ResolveEventArgs args)

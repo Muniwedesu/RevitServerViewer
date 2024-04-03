@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
+using RevitServerViewer.ViewModels;
 
 namespace RevitServerViewer;
 
@@ -11,8 +12,6 @@ public partial class MainWindow
     public MainWindow()
     {
         InitializeComponent();
-
-
         ViewModel = new MainWindowViewModel();
         this.WhenActivated(dr =>
         {
@@ -21,6 +20,10 @@ public partial class MainWindow
             dr(this.OneWayBind(ViewModel, vm => vm.Downloads, v => v.DownloadBox.ItemsSource));
             dr(this.Bind(ViewModel, vm => vm.SelectedServer, v => v.ServerBox.SelectedItem));
             dr(this.Bind(ViewModel, vm => vm.DisplayModel, v => v.ViewHost.ViewModel));
+            dr(this.Bind(ViewModel, vm => vm.ConnectionString, v => v.ConnectionBox.Text));
+            dr(this.Bind(ViewModel, vm => vm.SelectedVersion, v => v.VersionBox.SelectedItem));
+            dr(this.OneWayBind(ViewModel, vm => vm.ServerVersions, v => v.VersionBox.ItemsSource));
+            dr(this.OneWayBind(ViewModel, vm => vm.IsStandalone, v => v.VersionBox.IsEnabled));
         });
     }
 }

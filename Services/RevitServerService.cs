@@ -24,14 +24,14 @@ public class RevitServerService
     }
 
     private IScheduler _queue = new EventLoopScheduler();
-    private IObservable<DownloadResult> _models = Observable.Empty<DownloadResult>();
+    private IObservable<DownloadResult> _downloads = Observable.Empty<DownloadResult>();
     private IpcService _ipcSvc;
     private TimeSpan _debugExportTime = TimeSpan.FromMilliseconds(4000);
     private TimeSpan _debugDownloadTime = TimeSpan.FromMilliseconds(2000);
 
     public void SetServer(string address, string version)
     {
-        ClearDownloads();
+        // ClearDownloads();
         _dl = new RevitServerDownloader(address, version);
     }
 
@@ -39,67 +39,64 @@ public class RevitServerService
 
     public void ClearDownloads() => this.Operations.Clear();
 
+    public IObservable<OperationStage> AddDownload(string modelPath)
+    {
+        var outputFolder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\RS\{_dl.Host}\";
+        var paths = PathUtils.GetValidPaths(modelPath, outputFolder);
+        var st = new Subject<OperationStage>();
+        st.OnNext(OperationStage.Requested);
+        _downloads = _downloads.Concat(
+            Observable.Start(() => _dl.Download(paths.Source, paths.Destination, outputFolder, st), _queue));
+        return st;
+    }
+
     public void AddDownloads(string[] modelPaths, string selectedServer, bool makeLocal)
     {
-        var dest = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\RS\{selectedServer}";
-        _models = Observable.Empty<DownloadResult>();
+        Debugger.Launch();
+        var outputFolder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\RS\{selectedServer}\";
+        _downloads = Observable.Empty<DownloadResult>();
 
-
-        var sub = _ipcSvc.RevitMessages.Subscribe(msg =>
-            {
-                Debug.WriteLine(msg.ModelKey + " " + msg.OperationStatus);
-                Operations.AddOrUpdate(new ProcessingState(msg.ModelKey, msg.RvtLocation, msg.OperationType switch
-                {
-                    OperationType.Detach => msg.OperationStatus == OperationStatus.Error
-                        ? ProcessingStage.DetachError
-                        : ProcessingStage.Detaching
-                    // , OperationType.Cleanup => msg.OperationStatus == OperationStatus.Error
-                    //     ? ProcessingStage.DetachError
-                    //     : ProcessingStage.Detaching
-                    // , OperationType.DiscardLinks => msg.OperationStatus == OperationStatus.Error
-                    //     ? ProcessingStage.DetachError
-                    //     : ProcessingStage.Detaching
-                    , OperationType.Export => msg.OperationStatus == OperationStatus.Error
-                        ? ProcessingStage.ExportError
-                        : ProcessingStage.ExportingFromRevit
-                    , _ => throw new ArgumentOutOfRangeException()
-                }));
-            }
-            , () => { Debug.WriteLine("msg completed. +check if it's disposed properly"); });
         foreach (var modelPath in modelPaths)
         {
-            var paths = PathUtils.GetValidPaths(modelPath, dest);
-            var st = CreateStateObservable(paths);
-            if (File.Exists(paths.Destination))
-            {
-                _models = _models.Concat(Observable.Return(new DownloadResult(paths.Source, paths.Destination))
-                    .Delay(TimeSpan.FromMilliseconds(500), _queue));
-            }
+            var filePaths = PathUtils.GetValidPaths(modelPath, outputFolder);
+            var st = CreateStateObservable(filePaths);
+            if (File.Exists(filePaths.Destination))
+                _downloads = _downloads.Concat(Observable.Return(new DownloadResult(filePaths.Source
+                        , filePaths.Destination
+                        , outputFolder))
+                    .Delay(TimeSpan.FromMilliseconds(100), _queue));
             else
-            {
-                _models = _models.Concat(Observable.Start(() => _dl.Download(paths.Source, paths.Destination, st)
-                    , _queue));
-            }
-            // _models.Concat(Observable.Return(new DownloadResult(paths.Source, paths.Destination)));
+                _downloads = _downloads.Concat(Observable.Start(
+                    () => _dl.Download(filePaths.Source, filePaths.Destination, outputFolder, st), _queue));
         }
 
-        _models.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+        var sub = _ipcSvc.RevitMessages
+            .Subscribe(msg =>
+                {
+                    Debug.WriteLine("IPC: " + msg.ModelKey + " " + msg.OperationType + " " + msg.OperationStage);
+                    Operations.AddOrUpdate(ProcessingState.FromMessage(msg));
+                }
+                , () => { Debug.WriteLine("msg completed. +check if it's disposed properly"); });
+        _downloads.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
         {
             //OnDownloadCompleted
             Operations.AddOrUpdate(new ProcessingState(x.Src, x.Dst, ProcessingStage.DownloadComplete));
-            Observable.Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.Downloading))
-                .Delay(TimeSpan.FromSeconds(0.5))
-                .Concat(Observable
-                    .Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.ExportingFromRevit))
-                    .Delay(_debugDownloadTime))
-                .Concat(Observable
-                    .Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.Completed))
-                    .Delay(_debugExportTime))
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(y => { Operations.AddOrUpdate(y); });
+            Debug.WriteLine(x.Src + " Downloaded");
+#if DEBUG
+            // Observable.Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.Downloading))
+            //     .Delay(TimeSpan.FromSeconds(0.5))
+            //     .Concat(Observable
+            //         .Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.ExportingFromRevit))
+            //         .Delay(_debugDownloadTime))
+            //     .Concat(Observable
+            //         .Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.Completed))
+            //         .Delay(_debugExportTime))
+            //     .ObserveOn(RxApp.MainThreadScheduler)
+            //     .Subscribe(y => { Operations.AddOrUpdate(y); });
+#endif
             // _ipcSvc.RequestOperation(new DetachModelRequest(x.Dst, string.Empty, x.Src));
             //TODO: out path
-            // _ipcSvc.RequestOperation(new ExportModelRequest(x.Dst, string.Empty, x.Src, String.Empty));
+            _ipcSvc.RequestOperation(new ExportModelRequest(x.Dst, string.Empty, x.Src, x.OutFolder));
 
             //send request as observable 
             //merge with others
@@ -119,8 +116,9 @@ public class RevitServerService
     private ISubject<ProcessingStage> CreateStateObservable((string Source, string Destination) paths)
     {
         var st = new Subject<ProcessingStage>();
-        return st;
+        // return st;
         st.ObserveOn(Scheduler.CurrentThread)
+            .SubscribeOn(RxApp.MainThreadScheduler)
             .Subscribe(state =>
                 Operations.AddOrUpdate(new ProcessingState(paths.Source, paths.Destination, state)));
         st.OnNext(ProcessingStage.Idle);

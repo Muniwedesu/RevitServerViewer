@@ -1,6 +1,6 @@
 ﻿using DynamicData;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.ViewModels;
 
 public class FolderViewModel : TreeItem
 {

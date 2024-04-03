@@ -1,6 +1,6 @@
 ﻿using ReactiveUI.Fody.Helpers;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.ViewModels;
 
 public class LoadingViewModel : ReactiveObject
 {
