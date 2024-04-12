@@ -4,6 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using IBS.RevitServerTool;
+using RevitServerViewer.Services;
+using RevitServerViewer.ViewModels;
+using RevitServerViewer.Views;
 using Splat;
 
 namespace RevitServerViewer;
@@ -22,6 +25,9 @@ public partial class App : Application
         Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetExecutingAssembly());
         Locator.CurrentMutable.RegisterLazySingleton(() => new RevitServerService());
         Locator.CurrentMutable.RegisterConstant(new IpcService());
+        Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelDownloadTaskViewModel>));
+        Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelDetachTaskViewModel>));
+        Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelExportTaskViewModel>));
         var pipes = H.Pipes.PipeWatcher.GetActivePipes()
             .Where(x => !(x.Contains("jetbrains")
                           || x.Contains("mojo")

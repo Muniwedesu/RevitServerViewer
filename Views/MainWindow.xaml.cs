@@ -24,6 +24,7 @@ public partial class MainWindow
             dr(this.Bind(ViewModel, vm => vm.SelectedVersion, v => v.VersionBox.SelectedItem));
             dr(this.OneWayBind(ViewModel, vm => vm.ServerVersions, v => v.VersionBox.ItemsSource));
             dr(this.OneWayBind(ViewModel, vm => vm.IsStandalone, v => v.VersionBox.IsEnabled));
+            dr(this.OneWayBind(ViewModel, vm => vm.SaveOptions, v => v.SaveOptionsHost.ViewModel));
         });
     }
 }

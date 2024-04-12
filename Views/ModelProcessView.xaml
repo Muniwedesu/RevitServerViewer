@@ -1,5 +1,5 @@
-﻿<reactiveUi:ReactiveUserControl x:TypeArguments="viewModels:OperationResultViewModel"
-                                x:Class="RevitServerViewer.OperationResultView"
+﻿<reactiveUi:ReactiveUserControl x:TypeArguments="viewModels:ModelProcessViewModel"
+                                x:Class="RevitServerViewer.ModelProcessView"
                                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -23,9 +23,8 @@
         Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}, Path=ActualWidth, Converter={StaticResource WidthConverter}}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition MinWidth="20" />
-            <ColumnDefinition MaxWidth="200" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition MinWidth="20" Width="Auto" MaxWidth="300" />
+            <ColumnDefinition />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Border Grid.Column="0" BorderBrush="Green" BorderThickness="1">
@@ -41,26 +40,11 @@
                 C:\Users\mfmff\Desktop\RS\Projects\Samolet Alkhimovo\000_INITIAL DATA\Дом 15\002_КР\АЛХ_4-5_15_1-2_КР_КЖ0.1.rvt
             </TextBlock>
         </Border>
-
-        <Border Grid.Column="3" BorderBrush="Pink" BorderThickness="1">
-            <TextBlock Style="{StaticResource TextStyle}" Grid.Column="3" Name="StateBox">
-                ExportingFromRevit
-            </TextBlock>
+        <Border Grid.Column="2" BorderThickness="1" BorderBrush="Coral">
+            <reactiveUi:ViewModelViewHost Grid.Column="2" Name="TaskHost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"></reactiveUi:ViewModelViewHost>
         </Border>
-
-        <Border Grid.Column="4" BorderBrush="Magenta" BorderThickness="1">
-            <TextBlock Style="{StaticResource TextStyle}" Grid.Column="4" Name="ElapsedBox">00:00:00</TextBlock>
+        <Border Grid.Column="3" BorderBrush="Green" BorderThickness="1">
+            <TextBlock Style="{StaticResource TextStyle}" Grid.Column="0" Name="ElapsedBox">00:00:00</TextBlock>
         </Border>
-
-        <Border Grid.Column="2" BorderBrush="Red" BorderThickness="1">
-            <TextBlock Style="{StaticResource TextStyle}" TextWrapping="Wrap" Grid.Column="2"
-                       Name="MessageBox">
-                <TextBlock.ToolTip>
-                    <ToolTip Name="MessageToolTip" />
-                </TextBlock.ToolTip>
-                Some status text which can be long af i guess right or not idk whatever
-            </TextBlock>
-        </Border>
-
     </Grid>
 </reactiveUi:ReactiveUserControl>

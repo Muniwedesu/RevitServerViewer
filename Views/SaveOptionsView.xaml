@@ -1,0 +1,18 @@
+﻿<reactiveUi:ReactiveUserControl x:TypeArguments="viewModels:SaveOptionsViewModel"
+                                x:Class="RevitServerViewer.Views.SaveOptionsView"
+                                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                                xmlns:local="clr-namespace:RevitServerViewer.Views"
+                                xmlns:reactiveUi="http://reactiveui.net"
+                                xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
+                                mc:Ignorable="d"
+                                d:DesignHeight="100" d:DesignWidth="700">
+    <WrapPanel>
+        <CheckBox Name="DetachBox">Отсоединение</CheckBox>
+        <CheckBox Name="ExportBox">Экспорт</CheckBox>
+        <CheckBox Name="DiscardBox">Удаление связей</CheckBox>
+        <CheckBox Name="CleanupBox">Очистка</CheckBox>
+    </WrapPanel>
+</reactiveUi:ReactiveUserControl>

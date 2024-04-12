@@ -30,12 +30,13 @@ public abstract class ModelTaskViewModel : ReactiveObject
     [Reactive] public string StageString { get; set; }
     [Reactive] public bool IsActive { get; set; }
     [Reactive] public bool IsFinished { get; set; }
+    [Reactive] public string? StageDescription { get; set; }
 
     public ObservableTimer TaskTimer { get; set; } = new(TimeSpan.FromMilliseconds(250));
 
     public ModelTaskViewModel(string key, string sourceFile, string outputFolder)
     {
-        TaskTimer.Subscribe(x => Elapsed = x);
+        TaskTimer.Timer.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x => Elapsed = x);
         this.WhenAnyValue(x => x.IsActive).Subscribe(x =>
         {
             if (x) TaskTimer.Start();
@@ -49,11 +50,12 @@ public abstract class ModelTaskViewModel : ReactiveObject
         SourceFile = sourceFile;
         OutputFolder = outputFolder;
         this.WhenAnyValue(x => x.Stage)
+            .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(st =>
             {
                 StageString = st switch
                 {
-                    OperationStage.Requested => "Ожидается"
+                    OperationStage.Requested => "В очереди"
                     , OperationStage.Started => "Выполняется"
                     , OperationStage.Completed => "Завершено"
                     , _ => "Ошибка"
@@ -64,10 +66,12 @@ public abstract class ModelTaskViewModel : ReactiveObject
                 Debug.WriteLine(this.ModelKey
                                 + " " + this.OperationTypeString
                                 + " " + this.StageString
-                                + " " + Elapsed.ToString("g"));
+                                + " " + Elapsed.ToString(ElapsedFormat));
                 //TODO: timer stuff
             });
     }
+
+    private const string? ElapsedFormat = @"hh\:mm\:ss";
 
     [Reactive] public TimeSpan Elapsed { get; set; } = TimeSpan.Zero;
     public abstract bool Execute();

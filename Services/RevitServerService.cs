@@ -8,6 +8,7 @@ using Autodesk.Revit.DB;
 using DynamicData;
 using IBS.IPC.DataTypes;
 using IBS.RevitServerTool;
+using RevitServerViewer.Services;
 using Splat;
 
 namespace RevitServerViewer;
@@ -74,6 +75,7 @@ public class RevitServerService
                     Operations.AddOrUpdate(ProcessingState.FromMessage(msg));
                 }
                 , () => { Debug.WriteLine("msg completed. +check if it's disposed properly"); });
+        //TODO: check if this is still needed
         _downloads.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
         {
             //OnDownloadCompleted
@@ -93,7 +95,7 @@ public class RevitServerService
 #endif
             // _ipcSvc.RequestOperation(new DetachModelRequest(x.Dst, string.Empty, x.Src));
             //TODO: out path
-            _ipcSvc.RequestOperation(new ExportModelRequest(x.Dst, string.Empty, x.Src, x.OutFolder));
+            // _ipcSvc.RequestOperation(new ExportModelRequest(x.Dst, x.OutFolder, x.Src, x.OutFolder));
 
             //send request as observable 
             //merge with others

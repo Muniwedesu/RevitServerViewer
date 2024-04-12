@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reactive.Linq;
 using IBS.IPC.DataTypes;
 using Splat;
 
@@ -32,7 +33,7 @@ public class ModelDownloadTaskViewModel : ModelTaskViewModel
         }
 
         var svc = Locator.Current.GetService<RevitServerService>()!;
-        svc.AddDownload(SourceFile, OutputFile, OutputFolder)
+        svc.AddDownload(SourceFile, OutputFile, OutputFolder).ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(x => { this.Stage = x; });
         return true;
     }

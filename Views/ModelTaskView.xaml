@@ -1,0 +1,68 @@
+﻿<reactiveUi:ReactiveUserControl x:TypeArguments="viewModels:ModelTaskViewModel"
+                                x:Class="RevitServerViewer.Views.ModelTaskView"
+                                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                                xmlns:local="clr-namespace:RevitServerViewer.Views"
+                                xmlns:reactiveUi="http://reactiveui.net"
+                                xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
+                                xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                                mc:Ignorable="d"
+                                d:DesignHeight="50" d:DesignWidth="Auto">
+
+    <UserControl.Resources>
+        <DataTemplateSelector x:Key="Selector">
+        </DataTemplateSelector>
+        <Style x:Key="TextStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="2"></Setter>
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+        </Style>
+        <!-- <local:ListWidthConverter x:Key="WidthConverter" /> -->
+    </UserControl.Resources>
+    <Border BorderBrush="Aqua" BorderThickness="1">
+        <Grid>
+            <!-- Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}, Path=ActualWidth, Converter={StaticResource WidthConverter}}"> -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left">
+                <TextBlock Style="{StaticResource TextStyle}" Grid.Column="3" Name="OperationMessageBox">
+                    Exception occured somewhere idk
+                </TextBlock>
+            </Border>
+            <Border Grid.Column="1" BorderBrush="Pink" BorderThickness="0" HorizontalAlignment="Right">
+                <!-- <TextBlock Style="{StaticResource TextStyle}" Grid.Column="3" Name="OperationStageBox"> -->
+                <!--     Executing -->
+                <!-- </TextBlock> -->
+                <Border.Resources>
+                    <local:StageIconConverter x:Key="StageIconConverter" />
+                </Border.Resources>
+                <ui:SymbolIcon Name="OperationStageBox" Filled="True"
+                               Symbol="{Binding Stage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StageIconConverter}}">
+                </ui:SymbolIcon>
+            </Border>
+
+            <Border Grid.Column="2" BorderBrush="Magenta" BorderThickness="0" HorizontalAlignment="Right">
+                <TextBlock Style="{StaticResource TextStyle}" Grid.Column="4" Name="OperationTypeBox">Export</TextBlock>
+            </Border>
+
+            <Border Grid.Column="3" BorderBrush="Magenta" BorderThickness="0" HorizontalAlignment="Right">
+                <TextBlock Style="{StaticResource TextStyle}" Grid.Column="4" Name="ElapsedBox">00:00:00</TextBlock>
+            </Border>
+            <!-- <Border Grid.Column="2" BorderBrush="Red" BorderThickness="1"> -->
+            <!--     <TextBlock Style="{StaticResource TextStyle}" TextWrapping="Wrap" Grid.Column="2" -->
+            <!--                Name="MessageBox"> -->
+            <!--         <TextBlock.ToolTip> -->
+            <!--             <ToolTip Name="MessageToolTip" /> -->
+            <!--         </TextBlock.ToolTip> -->
+            <!--         Some status text which can be long af i guess right or not idk whatever -->
+            <!--     </TextBlock> -->
+            <!-- </Border> -->
+
+        </Grid>
+    </Border>
+</reactiveUi:ReactiveUserControl>

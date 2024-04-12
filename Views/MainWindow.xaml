@@ -57,6 +57,7 @@
                       ShowsPreview="False" />
         <ItemsControl Grid.Row="3" Name="DownloadBox" />
         <WrapPanel Grid.Row="4">
+            <reactiveUi:ViewModelViewHost Name="SaveOptionsHost"></reactiveUi:ViewModelViewHost>
             <Button Name="SaveButton">Save</Button>
         </WrapPanel>
     </Grid>

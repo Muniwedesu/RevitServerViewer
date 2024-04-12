@@ -15,9 +15,10 @@ public class ObservableTimer
         _t.Interval = interval;
         _t.Resolution = TimeSpan.FromMilliseconds(50);
         Timer = Observable.FromEventPattern(
-            handler => _t.Elapsed += handler,
-            handler => _t.Elapsed -= handler
-        ).Select(_ => _elapsed += _t.Interval);
+                handler => _t.Elapsed += handler,
+                handler => _t.Elapsed -= handler
+            ).ObserveOn(RxApp.MainThreadScheduler)
+            .Select(_ => _elapsed += _t.Interval);
     }
 
     public ObservableTimer() : this(TimeSpan.FromMilliseconds(500)) { }
