@@ -8,28 +8,22 @@ namespace RevitServerViewer.ViewModels;
 
 public class ModelExportTaskViewModel : ModelTaskViewModel
 {
-    public ModelExportTaskViewModel(string key, string sourceFile, string outputFolder) : base(key, sourceFile
-        , outputFolder)
+    public ModelExportTaskViewModel(string key, string sourceFile, string outputFolder)
+        : base(key: key, sourceFile: sourceFile, outputFolder: outputFolder)
     {
         var filename = Path.GetFileName(sourceFile);
         OutputFile = outputFolder;
+        OperationType = OperationType.Export;
     }
 
-    public override OperationType OperationType { get; } = OperationType.Export;
     public override string OperationTypeString { get; } = "Экспорт";
-    public sealed override string OutputFile { get; set; }
 
-    //TODO: subscription method and other stuff can be generalized
-    public override bool Execute()
+    public override bool ExecuteCommand()
     {
         var svc = Locator.Current.GetService<IpcService>()!;
         var stageObservable
             = svc.RequestOperation(new ExportModelRequest(SourceFile, OutputFolder, ModelKey, OutputFolder));
-        stageObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
-        {
-            this.Stage = x.OperationStage;
-            this.StageDescription = x.OperationMessage;
-        });
+        stageObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(UpdateStage);
         return true;
     }
 }

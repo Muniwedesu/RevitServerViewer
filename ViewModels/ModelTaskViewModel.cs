@@ -23,15 +23,17 @@ public abstract class ModelTaskViewModel : ReactiveObject
     /// </summary>
     public string OutputFolder { get; set; }
 
-    public abstract OperationType OperationType { get; }
+    public OperationType OperationType { get; protected set; } = OperationType.Download;
     public abstract string OperationTypeString { get; }
-    public abstract string OutputFile { get; set; }
+    public string OutputFile { get; set; }
     [Reactive] public OperationStage Stage { get; set; }
     [Reactive] public string StageString { get; set; }
     [Reactive] public bool IsActive { get; set; }
-    [Reactive] public bool IsFinished { get; set; }
+    [Reactive] public bool IsDone { get; set; }
     [Reactive] public string? StageDescription { get; set; }
 
+    [Reactive] public TimeSpan Elapsed { get; set; } = TimeSpan.Zero;
+    private const string? ElapsedFormat = @"hh\:mm\:ss";
     public ObservableTimer TaskTimer { get; set; } = new(TimeSpan.FromMilliseconds(250));
 
     public ModelTaskViewModel(string key, string sourceFile, string outputFolder)
@@ -43,7 +45,7 @@ public abstract class ModelTaskViewModel : ReactiveObject
             else TaskTimer.Stop();
         });
 
-        this.WhenAnyValue(x => x.IsFinished).Where(x => x)
+        this.WhenAnyValue(x => x.IsDone).Where(x => x)
             .Subscribe(_ => TaskTimer.Stop());
 
         ModelKey = key;
@@ -53,15 +55,8 @@ public abstract class ModelTaskViewModel : ReactiveObject
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(st =>
             {
-                StageString = st switch
-                {
-                    OperationStage.Requested => "В очереди"
-                    , OperationStage.Started => "Выполняется"
-                    , OperationStage.Completed => "Завершено"
-                    , _ => "Ошибка"
-                };
-
-                IsFinished = st is OperationStage.Error or OperationStage.Completed;
+                StageString = GetStageString(st);
+                IsDone = st is OperationStage.Error or OperationStage.Completed;
                 IsActive = st == OperationStage.Started;
                 Debug.WriteLine(this.ModelKey
                                 + " " + this.OperationTypeString
@@ -71,10 +66,27 @@ public abstract class ModelTaskViewModel : ReactiveObject
             });
     }
 
-    private const string? ElapsedFormat = @"hh\:mm\:ss";
+    private static string GetStageString(OperationStage st)
+    {
+        return st switch
+        {
+            OperationStage.Requested => "В очереди"
+            , OperationStage.Started => "Выполняется"
+            , OperationStage.Completed => "Завершено"
+            , _ => "Ошибка"
+        };
+    }
 
-    [Reactive] public TimeSpan Elapsed { get; set; } = TimeSpan.Zero;
-    public abstract bool Execute();
+    public bool Execute() => ExecuteCommand();
+
+    public abstract bool ExecuteCommand();
+
+    public void UpdateStage(ModelOperationStatusMessage msg)
+    {
+        Debug.WriteLine(ModelKey + " " + msg.OperationStage);
+        this.Stage = msg.OperationStage;
+        this.StageDescription = msg.OperationMessage;
+    }
 }
 
 public interface IModelTask

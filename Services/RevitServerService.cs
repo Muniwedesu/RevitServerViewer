@@ -1,6 +1,6 @@
-using System.Diagnostics;
-using System.IO;
+using System;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
@@ -8,6 +8,7 @@ using Autodesk.Revit.DB;
 using DynamicData;
 using IBS.IPC.DataTypes;
 using IBS.RevitServerTool;
+using ReactiveUI;
 using RevitServerViewer.Services;
 using Splat;
 
@@ -25,7 +26,7 @@ public class RevitServerService
     }
 
     private IScheduler _queue = new EventLoopScheduler();
-    private IObservable<DownloadResult> _downloads = Observable.Empty<DownloadResult>();
+    private IObservable<ModelOperationStatusMessage> _downloads = Observable.Empty<ModelOperationStatusMessage>();
     private IpcService _ipcSvc;
     private TimeSpan _debugExportTime = TimeSpan.FromMilliseconds(4000);
     private TimeSpan _debugDownloadTime = TimeSpan.FromMilliseconds(2000);
@@ -40,76 +41,11 @@ public class RevitServerService
 
     public void ClearDownloads() => this.Operations.Clear();
 
-    public IObservable<OperationStage> AddDownload(string srcFile, string outFile, string outFolder)
+    public IObservable<ModelOperationStatusMessage> AddDownload(string srcFile, string outFile, string outFolder)
     {
-        var st = new Subject<OperationStage>();
-        st.OnNext(OperationStage.Requested);
-        _downloads = _downloads.Concat(Observable.Start(() => _dl.Download(srcFile, outFile, outFolder, st), _queue));
+        var st = _dl.Download(srcFile, outFile, outFolder).SubscribeOn(TaskPoolScheduler.Default);
+        _downloads = _downloads.Concat(st);
         return st;
-    }
-
-    public void AddDownloads(string[] modelPaths, string selectedServer, bool makeLocal)
-    {
-        Debugger.Launch();
-        var outputFolder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\RS\{selectedServer}\";
-        _downloads = Observable.Empty<DownloadResult>();
-
-        foreach (var modelPath in modelPaths)
-        {
-            var filePaths = PathUtils.GetValidPaths(modelPath, outputFolder);
-            var st = CreateStateObservable(filePaths);
-            if (File.Exists(filePaths.Destination))
-                _downloads = _downloads.Concat(Observable.Return(new DownloadResult(filePaths.Source
-                        , filePaths.Destination
-                        , outputFolder))
-                    .Delay(TimeSpan.FromMilliseconds(100), _queue));
-            else
-                _downloads = _downloads.Concat(Observable.Start(
-                    () => _dl.Download(filePaths.Source, filePaths.Destination, outputFolder, st), _queue));
-        }
-
-        var sub = _ipcSvc.RevitMessages
-            .Subscribe(msg =>
-                {
-                    Debug.WriteLine("IPC: " + msg.ModelKey + " " + msg.OperationType + " " + msg.OperationStage);
-                    Operations.AddOrUpdate(ProcessingState.FromMessage(msg));
-                }
-                , () => { Debug.WriteLine("msg completed. +check if it's disposed properly"); });
-        //TODO: check if this is still needed
-        _downloads.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
-        {
-            //OnDownloadCompleted
-            Operations.AddOrUpdate(new ProcessingState(x.Src, x.Dst, ProcessingStage.DownloadComplete));
-            Debug.WriteLine(x.Src + " Downloaded");
-#if DEBUG
-            // Observable.Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.Downloading))
-            //     .Delay(TimeSpan.FromSeconds(0.5))
-            //     .Concat(Observable
-            //         .Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.ExportingFromRevit))
-            //         .Delay(_debugDownloadTime))
-            //     .Concat(Observable
-            //         .Return(new ProcessingState(x.Src, x.Dst, ProcessingStage.Completed))
-            //         .Delay(_debugExportTime))
-            //     .ObserveOn(RxApp.MainThreadScheduler)
-            //     .Subscribe(y => { Operations.AddOrUpdate(y); });
-#endif
-            // _ipcSvc.RequestOperation(new DetachModelRequest(x.Dst, string.Empty, x.Src));
-            //TODO: out path
-            // _ipcSvc.RequestOperation(new ExportModelRequest(x.Dst, x.OutFolder, x.Src, x.OutFolder));
-
-            //send request as observable 
-            //merge with others
-            //TODO: detach 
-            //TODO: export
-            //TODO: +Discard
-            //TODO: start processing there if only detach/discard
-            //send msg
-        }, ex => { Debug.WriteLine(ex.Message); }, () =>
-        {
-            //OnAllDownloadsCompleted
-            //TODO: +Clean
-            var dl = Operations.Items;
-        });
     }
 
     private ISubject<ProcessingStage> CreateStateObservable((string Source, string Destination) paths)

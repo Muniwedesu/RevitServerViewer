@@ -5,29 +5,29 @@ using DynamicData.Binding;
 using ReactiveUI.Fody.Helpers;
 
 namespace RevitServerViewer.ViewModels;
-
+public enum ProcessType
+{
+    Download
+    , Detach
+    , Export
+    , Cleanup
+    , DiscardLinks
+}
 public class ModelProcessViewModel : ReactiveObject
 {
     public DateTime StartupTime { get; set; } = DateTime.Now;
     public string DisplayStartupTime { get; set; } = DateTime.Now.ToString("HH:mm:ss");
     public string Name { get; set; }
     [Reactive] public ModelTaskViewModel? CurrentTask { get; set; } = null;
-    public Queue<ProcessStage> RemainingStages { get; set; } = new();
+    public Queue<ProcessType> RemainingStages { get; set; } = new();
     public ObservableCollectionExtended<ModelTaskViewModel> FinishedTasks { get; set; } = new();
     public const string ElapsedFormat = @"hh\:mm\:ss";
     [Reactive] public TimeSpan Elapsed { get; set; }
     public string OutputFolder { get; }
 
-    public enum ProcessStage
-    {
-        Download
-        , Detach
-        , Export
-        , Cleanup
-        , Discard
-    }
+    
 
-    public ModelProcessViewModel(string sourcePath, string outputFolder, ICollection<ProcessStage> opts)
+    public ModelProcessViewModel(string sourcePath, string outputFolder, ICollection<ProcessType> opts)
     {
         Name = sourcePath;
         OutputFolder = outputFolder;
@@ -40,7 +40,7 @@ public class ModelProcessViewModel : ReactiveObject
             .Subscribe(t =>
             {
                 t ??= SetNextTask(sourcePath, t);
-                t?.WhenAnyValue(x => x.IsFinished)
+                t?.WhenAnyValue(x => x.IsDone)
                     .Where(x => x)
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Subscribe(_ => SetFinished(t));
@@ -55,7 +55,7 @@ public class ModelProcessViewModel : ReactiveObject
             })
             .Subscribe(_ =>
             {
-                if (!RemainingStages.Any() && CurrentTask.IsFinished)
+                if (!RemainingStages.Any() && CurrentTask.IsDone)
                 {
                     Debug.WriteLine(this.Name
                                     + " finished "
@@ -77,9 +77,11 @@ public class ModelProcessViewModel : ReactiveObject
         {
             CurrentTask = stage switch
             {
-                ProcessStage.Download => new ModelDownloadTaskViewModel(previousSource, OutputFolder)
-                , ProcessStage.Detach => new ModelDetachTaskViewModel(previousSource, previous!.OutputFile)
-                , ProcessStage.Export => new ModelExportTaskViewModel(previous!.ModelKey, previous!.OutputFile
+                ProcessType.Download => new ModelDownloadTaskViewModel(previousSource, OutputFolder)
+                , ProcessType.Detach => new ModelDetachTaskViewModel(previousSource, previous!.OutputFile)
+                , ProcessType.Cleanup => new ModelCleanupTaskViewModel(previous!.ModelKey, previous.OutputFile
+                    , OutputFolder)
+                , ProcessType.Export => new ModelExportTaskViewModel(previous!.ModelKey, previous.OutputFile
                     , OutputFolder)
             };
             return CurrentTask;

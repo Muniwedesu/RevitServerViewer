@@ -7,12 +7,17 @@
                                 xmlns:local="clr-namespace:RevitServerViewer.Views"
                                 xmlns:reactiveUi="http://reactiveui.net"
                                 xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
-                                mc:Ignorable="d"
-                                d:DesignHeight="100" d:DesignWidth="700">
-    <WrapPanel>
-        <CheckBox Name="DetachBox">Отсоединение</CheckBox>
-        <CheckBox Name="ExportBox">Экспорт</CheckBox>
-        <CheckBox Name="DiscardBox">Удаление связей</CheckBox>
-        <CheckBox Name="CleanupBox">Очистка</CheckBox>
+                                mc:Ignorable="d" d:DesignWidth="700">
+    <WrapPanel VerticalAlignment="Center">
+        <WrapPanel.Resources>
+            <Thickness x:Key="CheckBoxMargin">4,2</Thickness>
+        </WrapPanel.Resources>
+        <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="DetachBox">Отсоединение</CheckBox>
+        <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="DiscardBox">Удаление связей</CheckBox>
+        <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="CleanupBox">Очистка</CheckBox>
+        <WrapPanel>
+            <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="ExportBox">Экспорт</CheckBox>
+            <!-- <Button>Настройки экспорта</Button> -->
+        </WrapPanel>
     </WrapPanel>
 </reactiveUi:ReactiveUserControl>

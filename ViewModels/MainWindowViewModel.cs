@@ -20,7 +20,6 @@ public class MainWindowViewModel : ReactiveObject
 
     [Reactive] public string SelectedServer { get; set; }
     public ObservableCollection<ModelProcessViewModel> Downloads { get; set; } = new();
-    private ReadOnlyObservableCollection<OperationResultViewModel> _downloads;
     private readonly IpcService _ipcSvc;
 
     [Reactive] public ReactiveObject DisplayModel { get; set; }
@@ -38,17 +37,20 @@ public class MainWindowViewModel : ReactiveObject
         ServerViewModel = new RevitServerViewModel();
         _rsSvc = Locator.Current.GetService<RevitServerService>()!;
         _ipcSvc = Locator.Current.GetService<IpcService>()!;
-        _ipcSvc.WhenAnyValue(x => x.Connected)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(x => ConnectionString = x ? "Connected" : "Not connected");
-        _ipcSvc.WhenAnyValue(x => x.RevitVersion)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .WhereNotNull()
-            .Subscribe(OnVersionReceived);
+        // _ipcSvc.WhenAnyValue(x => x.Connected)
+        //     .ObserveOn(RxApp.MainThreadScheduler)
+        //     .Subscribe(x => ConnectionString = x ? "Connected" : "Not connected");
+        // _ipcSvc.WhenAnyValue(x => x.RevitVersion)
+        //     .ObserveOn(RxApp.MainThreadScheduler)
+        //     .WhereNotNull()
+        //     .Subscribe(OnVersionReceived);
         //TODO: or smth
         this.WhenAnyValue(x => x.SelectedVersion)
             .ObserveOn(RxApp.MainThreadScheduler)
             .BindTo(this.ServerViewModel, x => x.Version);
+        this.WhenAnyValue(x => x.SelectedVersion)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .BindTo(this._ipcSvc, x => x.RevitVersion);
 
         this.WhenAnyValue(x => x.SelectedVersion)
             .WhereNotNull()
@@ -120,41 +122,5 @@ public class MainWindowViewModel : ReactiveObject
 
 
         // _rsSvc.AddDownloads(modelPaths, ServerViewModel.SelectedServer, true);
-    }
-}
-
-public class SaveOptionsViewModel : ReactiveObject
-{
-    [Reactive] public bool IsDetaching { get; set; }
-    [Reactive] public bool IsExporting { get; set; }
-    [Reactive] public bool IsDiscarding { get; set; }
-    [Reactive] public bool IsCleaning { get; set; }
-
-    /// <summary>
-    /// exists solely to disable unchecking 'detach' if other boxes are checked
-    /// </summary>
-    [Reactive] public bool DetachEnabled { get; set; }
-
-    public SaveOptionsViewModel()
-    {
-        this.WhenAnyValue(x => x.IsExporting, x => x.IsDiscarding, x => x.IsCleaning)
-            .Select(x => x.Item1 || x.Item2 || x.Item3)
-            .Subscribe(x =>
-            {
-                this.IsDetaching = x;
-                this.DetachEnabled = !x;
-            });
-    }
-
-    public ICollection<ModelProcessViewModel.ProcessStage> GetTasks()
-    {
-        var stages = new List<ModelProcessViewModel.ProcessStage>();
-        stages.Add(ModelProcessViewModel.ProcessStage.Download);
-        if (IsDetaching) stages.Add(ModelProcessViewModel.ProcessStage.Detach);
-        // if (IsDiscarding) stages.Add(ModelProcessViewModel.ProcessStage.Detach);
-        // if (IsCleaning) stages.Add(ModelProcessViewModel.ProcessStage.Detach);
-        if (IsExporting) stages.Add(ModelProcessViewModel.ProcessStage.Export);
-        // if (IsDetaching) stages.Add(ModelProcessViewModel.ProcessStage.Detach);
-        return stages;
     }
 }

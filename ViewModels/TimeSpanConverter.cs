@@ -39,7 +39,6 @@ public class TimeSpanConverter : IBindingTypeConverter
 
     public bool TryConvert(object? from, Type toType, object? conversionHint, out object? result)
     {
-        Debug.WriteLine(from);
         result = ((TimeSpan)(from ?? TimeSpan.Zero)).ToString(@"hh\:mm\:ss\.ff");
         return true;
     }

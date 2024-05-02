@@ -1,6 +1,6 @@
 ﻿using RevitServerViewer.ViewModels;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.Views;
 
 public partial class ModelProcessView
 {

@@ -5,6 +5,7 @@ using Autodesk.Revit.DB.Events;
 using DynamicData;
 using DynamicData.Kernel;
 using H.Pipes;
+using H.Pipes.Args;
 using IBS.IPC;
 using IBS.IPC.DataTypes;
 using ReactiveUI.Fody.Helpers;
@@ -13,110 +14,149 @@ namespace RevitServerViewer.Services;
 
 public class IpcService : ReactiveObject
 {
-    public PipeClient<SerializableMessage> _client = new(IBS.IPC.PipeNames.RevitServerModelDownloader);
-    private ISubject<ModelOperationStatusMessage> _revitMessages = new Subject<ModelOperationStatusMessage>();
-    public IObservable<ModelOperationStatusMessage> RevitMessages => _revitMessages;
-    public SourceCache<ModelOperationRequest, string> _ops = new(x => x.ModelKey);
+    /// <summary>
+    /// 
+    /// </summary>
+    public SourceCache<ModelOperationRequest, string> _activeTasks = new(x => x.ModelKey);
 
+    /// <summary>
+    /// dict of active pipes
+    /// </summary>
+    public Dictionary<string, PipeClient<SerializableMessage>> _clients = new();
+
+    /// <summary>
+    /// to route incoming messages to the observing tasks
+    /// </summary>
     public Dictionary<string, Queue<ISubject<ModelOperationStatusMessage>>> _stageMessages = new();
 
-    [Reactive] public bool Connected { get; set; }
+    /// <summary>
+    /// running revits 
+    /// </summary>
+    private Dictionary<string, Process> _processes = new();
+
     [Reactive] public string RevitVersion { get; set; }
 
+    private object _clients_lock = new();
 
     public IpcService()
     {
 #if DEBUG
         Debugger.Launch();
 #endif
-        _client.OnMessage()
-            .Subscribe(msg =>
-            {
-                try
-                {
-                    var message = System.Text.Json.JsonSerializer
-                        .Deserialize(msg.Message.SerializedString, Type.GetType(msg.Message.TypeName));
-
-                    if (message is ModelOperationStatusMessage statusMessage)
-                    {
-                        Debug.WriteLine("IPCsvc OnMessage : "
-                                        + statusMessage.OperationType + " "
-                                        + statusMessage.OperationStage);
-                        if (statusMessage.OperationStage is OperationStage.Completed or OperationStage.Error)
-                        {
-                            var st = _stageMessages[statusMessage.ModelKey].Dequeue();
-                            st.OnNext(statusMessage);
-                            //TODO: this isn't very reliable
-                            _ops.RemoveKey(statusMessage.ModelKey);
-                        }
-                        else
-                        {
-                            _stageMessages[statusMessage.ModelKey].Peek().OnNext(statusMessage);
-                        }
-
-                        // _revitMessages.OnNext(statusMessage);
-                        // if (statusMessage.OperationStage is OperationStage.Completed or OperationStage.Error)
-                        //     _ops.RemoveKey(statusMessage.ModelKey);
-                    }
-                    else if (message is string version)
-                    {
-                        RevitVersion = version;
-                    }
-                }
-                catch
-                {
-                    Debug.WriteLine(nameof(IpcService) + " EX : " + msg.Message.SerializedString);
-                }
-            });
-        _ops.Connect()
+        // _client.OnMessage().Subscribe(ProcessMessage);
+        _activeTasks.Connect()
             .OnItemUpdated((x, xx) =>
             {
-                Observable.FromAsync(async () => await _client.WriteAsync(SerializableMessage.Create(x, x.GetType())))
+                Observable.FromAsync(async () =>
+                        await _clients[x.ModelKey].WriteAsync(SerializableMessage.Create(x, x.GetType())))
                     .Subscribe(_ => { Debug.WriteLine("Request " + x.ModelKey); });
             })
             .OnItemAdded(x =>
             {
-                // _client.WriteAsync(SerializableMessage.Create(x)).Wait();
-                //TODO: display connecting status if not connected and do not 
-                //TODO: ^ ??????????
-                Observable.FromAsync(async () => await _client.WriteAsync(SerializableMessage.Create(x, x.GetType())))
+                Observable.FromAsync(async () =>
+                        await _clients[x.ModelKey].WriteAsync(SerializableMessage.Create(x, x.GetType())))
                     .Subscribe(_ => { Debug.WriteLine("Request " + x.ModelKey); });
             })
             .OnItemRemoved(_ =>
             {
-                // if (!_ops.Items.Any())
+                // if (!_activeTasks.Items.Any())
                 // {
                 //     _revitMessages.OnCompleted();
                 // }
             })
             .Subscribe(x => { Debug.WriteLine(x); });
-        _client.Connected += (sender, args) => { Debug.WriteLine(args.Connection.PipeName); };
 
-        _client.OnDisconnected().Subscribe(_ => { Application.Current.Shutdown(); });
-        _client.ConnectAsync().Wait(3000);
+        // _client.OnDisconnected().ObserveOn(RxApp.MainThreadScheduler)
+        //     .Subscribe(_ => { Application.Current.Shutdown(); });
+        // _client.ConnectAsync().Wait(3000);
 
         Observable.Interval(TimeSpan.FromMilliseconds(1000)).Subscribe(UpdateConnectionStatus);
-        if (!_client.IsConnected) ;
+        // if (!_client.IsConnected) ;
+    }
+
+    private void ProcessMessage(ConnectionMessageEventArgs<SerializableMessage> msg)
+    {
+        try
+        {
+            var message = System.Text.Json.JsonSerializer
+                .Deserialize(msg.Message.SerializedString, Type.GetType(msg.Message.TypeName));
+
+            if (message is ModelOperationStatusMessage statusMessage)
+            {
+                Debug.WriteLine("IPCsvc OnMessage : "
+                                + statusMessage.OperationType + " "
+                                + statusMessage.OperationStage);
+                if (statusMessage.OperationStage is OperationStage.Completed or OperationStage.Error)
+                {
+                    var st = _stageMessages[statusMessage.ModelKey].Dequeue();
+                    st.OnNext(statusMessage);
+                    st.OnCompleted();
+                    if (statusMessage.OperationStage is OperationStage.Completed)
+                        _processes[statusMessage.ModelKey].Kill();
+                    //TODO: this isn't very reliable
+                    _activeTasks.RemoveKey(statusMessage.ModelKey);
+                }
+                else
+                {
+                    _stageMessages[statusMessage.ModelKey].Peek().OnNext(statusMessage);
+                }
+
+                // _revitMessages.OnNext(statusMessage);
+                // if (statusMessage.OperationStage is OperationStage.Completed or OperationStage.Error)
+                //     _activeTasks.RemoveKey(statusMessage.ModelKey);
+            }
+            else if (message is string version)
+            {
+                RevitVersion = version;
+            }
+        }
+        catch
+        {
+            Debug.WriteLine(nameof(IpcService) + " EX : " + msg.Message.SerializedString);
+        }
     }
 
     private void UpdateConnectionStatus(long _)
     {
-        // Debug.WriteLine("Checking connection");
-        if (!this.Connected)
+        try
         {
-            _client.ConnectAsync().Wait(500);
-            Debug.WriteLine("Trying to connect: " + _client.IsConnected);
+            lock (_clients_lock)
+            {
+                foreach (var p in _clients.Values.Where(p => !p.IsConnected))
+                    p.ConnectAsync().Wait(500);
+            }
         }
-
-        if (this.Connected != _client.IsConnected)
+        catch
         {
-            this.Connected = _client.IsConnected;
+            //TODO: fix this (collection modified etc)
         }
     }
 
 
     public IObservable<ModelOperationStatusMessage> RequestOperation(ModelOperationRequest request)
     {
+        //check if we have space first
+        //then add a new one ig?
+        if (!_clients.TryGetValue(request.ModelKey, out var client))
+        {
+            lock (_clients_lock)
+            {
+                //TODO: check available RAM, do not launch new instances until we have enough
+                //TODO: properly close apps that have fininished
+                //TODO: implement retrying 
+                var revit = Process.Start($"C:\\Program Files\\Autodesk\\Revit {RevitVersion}\\Revit.exe");
+
+                var p = new PipeClient<SerializableMessage>(PipeNames.RevitServerModelDownloader
+                                                            + $"_{revit.Id}_{revit.SessionId}");
+                _clients.Add(request.ModelKey, p);
+                _processes.Add(request.ModelKey, revit);
+                p.AutoReconnect = true;
+
+                p.Connected += (sender, args) => Debug.WriteLine(args.Connection.PipeName + " connected");
+                p.OnMessage().Subscribe(ProcessMessage);
+            }
+        }
+
         var stageObservable = new Subject<ModelOperationStatusMessage>();
         if (this._stageMessages.TryGetValue(request.ModelKey, out var q)) { }
         else
@@ -127,17 +167,7 @@ public class IpcService : ReactiveObject
 
         q.Enqueue(stageObservable);
 
-        _ops.AddOrUpdate(request);
+        _activeTasks.AddOrUpdate(request);
         return stageObservable;
     }
 }
-
-// _client.WriteAsync(
-//         SerializableMessage.Create(new DiscardLinksRequest("physPath", "root", "DiscardLinksKey")))
-//     .Wait();
-// _client.WriteAsync(SerializableMessage.Create(new CleanUpModelRequest("physPath", "root", "CleanKey"
-//     , new[] { "model1", "model2" }))).Wait();
-// _client.WriteAsync(
-//         SerializableMessage.Create(
-//             new ExportModelRequest("physPath", "root", "ExportKey", "outputLocation")))
-//     .Wait();
