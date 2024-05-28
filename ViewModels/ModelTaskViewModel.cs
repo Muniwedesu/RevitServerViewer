@@ -81,13 +81,19 @@ public abstract class ModelTaskViewModel : ReactiveObject
         };
     }
 
+    protected void HandleException(Exception exception)
+    {
+        Stage = OperationStage.Error;
+        StageDescription = exception.Message;
+    }
+
     public bool Execute() => ExecuteCommand();
 
     public abstract bool ExecuteCommand();
 
     public void UpdateStage(ModelOperationStatusMessage msg)
     {
-        Debug.WriteLine(ModelKey + " " + msg.OperationStage);
+        Debug.WriteLine(ModelKey + " " + msg.OperationStage + " " + StageDescription);
         this.Stage = msg.OperationStage;
         this.StageDescription = msg.OperationMessage;
     }

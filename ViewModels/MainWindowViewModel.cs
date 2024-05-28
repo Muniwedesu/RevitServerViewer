@@ -12,25 +12,22 @@ namespace RevitServerViewer.ViewModels;
 
 public class MainWindowViewModel : ReactiveObject
 {
-    private RevitServerService _rsSvc;
+    [Reactive] public bool IsStandalone { get; set; } = true;
+    [Reactive] public ReactiveObject DisplayModel { get; set; }
+    [Reactive] public string SelectedVersion { get; set; } = "2021";
+    [Reactive] public int MaxAppCount { get; set; } = 4;
+    [Reactive] public string SelectedServer { get; set; }
+
+    private readonly RevitServerService _rsSvc;
     public string ConfigPath(string version) => @"C:\ProgramData\Autodesk\Revit Server " + version + @"\Config\RSN.ini";
     public ReactiveCommand<Unit, Unit> SaveModelsCommand { get; set; }
     public ObservableCollection<string> ServerList { get; set; } = new();
     public SaveOptionsViewModel SaveOptions { get; } = new();
-
-    [Reactive] public string SelectedServer { get; set; }
     public ObservableCollection<ModelProcessViewModel> Downloads { get; set; } = new();
-    private readonly IpcService _ipcSvc;
 
-    [Reactive] public ReactiveObject DisplayModel { get; set; }
 
     public RevitServerViewModel ServerViewModel { get; set; }
-    public LoadingViewModel LoadingViewModel { get; set; } = new LoadingViewModel("Выбрать сервер");
-    [Reactive] public string ConnectionString { get; set; }
-
-    [Reactive] public string SelectedVersion { get; set; } = "2021";
-
-    [Reactive] public int MaxAppCount { get; set; } = 4;
+    public LoadingViewModel LoadingViewModel { get; set; } = new("Выбрать сервер");
 
     public string[] ServerVersions { get; } = { "2020", "2021", "2022", "2023" };
 
@@ -38,7 +35,7 @@ public class MainWindowViewModel : ReactiveObject
     {
         ServerViewModel = new RevitServerViewModel();
         _rsSvc = Locator.Current.GetService<RevitServerService>()!;
-        _ipcSvc = Locator.Current.GetService<IpcService>()!;
+        var ipcSvc = Locator.Current.GetService<IpcService>()!;
         // _ipcSvc.WhenAnyValue(x => x.Connected)
         //     .ObserveOn(RxApp.MainThreadScheduler)
         //     .Subscribe(x => ConnectionString = x ? "Connected" : "Not connected");
@@ -51,10 +48,10 @@ public class MainWindowViewModel : ReactiveObject
             .BindTo(ServerViewModel, x => x.Version);
         this.WhenAnyValue(x => x.MaxAppCount)
             .ObserveOn(RxApp.MainThreadScheduler)
-            .BindTo(_ipcSvc, x => x.MaxAppCount);
+            .BindTo(ipcSvc, x => x.MaxAppCount);
         this.WhenAnyValue(x => x.SelectedVersion)
             .ObserveOn(RxApp.MainThreadScheduler)
-            .BindTo(_ipcSvc, x => x.RevitVersionString);
+            .BindTo(ipcSvc, x => x.RevitVersionString);
 
         this.WhenAnyValue(x => x.SelectedVersion)
             .WhereNotNull()
@@ -72,7 +69,10 @@ public class MainWindowViewModel : ReactiveObject
             });
         SaveModelsCommand = ReactiveCommand.Create(SaveModels, isIdling);
 
-        this.WhenAnyValue(x => x.SelectedServer).Subscribe(OnServerChanged);
+        this.WhenAnyValue(x => x.SelectedServer).WhereNotNull().Subscribe(OnServerChanged);
+#if DEBUG
+        SelectedServer = "192.168.0.45";
+#endif
     }
 
     private void OnVersionReceived(string x)
@@ -97,24 +97,23 @@ public class MainWindowViewModel : ReactiveObject
         _rsSvc.SetServer(address: x, version: SelectedVersion);
     }
 
-    [Reactive] public bool IsStandalone { get; set; } = true;
 
     private void SaveModels()
     {
         _rsSvc.ClearDownloads();
         var flat = (ServerViewModel.Folders.First() as FolderViewModel)!.Flatten();
-        var modelPaths = flat.OfType<ModelViewModel>()
+        var models = flat.OfType<ModelViewModel>()
             .Where(m => m.IsSelected)
-            .Select(x => x.FullName)
+            .Cast<ModelViewModel>()
             .ToArray();
         //TODO: ability to change destination folder in UI
         var outputFolder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\RS\{SelectedServer}\";
 
         var opts = SaveOptions.GetTasks();
 
-        foreach (var sourcePath in modelPaths)
+        foreach (var model in models)
         {
-            var op = new ModelProcessViewModel(sourcePath, outputFolder, opts);
+            var op = new ModelProcessViewModel(model, outputFolder, opts);
             if (Downloads.FirstOrDefault(d => d.Name == op.Name) is { } mp)
             {
                 // mp.Cancel();

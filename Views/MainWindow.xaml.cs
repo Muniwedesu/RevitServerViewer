@@ -15,10 +15,10 @@ public partial class MainWindow
         ViewModel = new MainWindowViewModel();
         this.WhenActivated(dr =>
         {
-            dr(this.BindCommand(ViewModel, vm => vm.SaveModelsCommand, v => v.SaveButton));
             dr(this.OneWayBind(ViewModel, vm => vm.ServerList, v => v.ServerBox.ItemsSource));
-            dr(this.OneWayBind(ViewModel, vm => vm.Downloads, v => v.DownloadBox.ItemsSource));
             dr(this.Bind(ViewModel, vm => vm.SelectedServer, v => v.ServerBox.SelectedItem));
+            dr(this.BindCommand(ViewModel, vm => vm.SaveModelsCommand, v => v.SaveButton));
+            dr(this.OneWayBind(ViewModel, vm => vm.Downloads, v => v.DownloadBox.ItemsSource));
             dr(this.Bind(ViewModel, vm => vm.DisplayModel, v => v.ViewHost.ViewModel));
             // dr(this.Bind(ViewModel, vm => vm.ConnectionString, v => v.ConnectionBox.Text));
             dr(this.Bind(ViewModel, vm => vm.SelectedVersion, v => v.VersionBox.SelectedItem));

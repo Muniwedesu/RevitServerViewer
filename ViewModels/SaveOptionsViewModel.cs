@@ -34,15 +34,18 @@ public class SaveOptionsViewModel : ReactiveObject
             });
     }
 
-    public ICollection<ProcessType> GetTasks()
+    public ICollection<TaskType> GetTasks()
     {
-        var stages = new List<ProcessType>();
-        stages.Add(ProcessType.Download);
-        if (IsDetaching) stages.Add(ProcessType.Detach);
-        if (IsDiscarding) stages.Add(ProcessType.DiscardLinks);
-        if (IsCleaning) stages.Add(ProcessType.Cleanup);
-        if (IsExporting) stages.Add(ProcessType.Export);
-        // if (IsDiscarding | IsCleaning | IsExporting) stages.Add(ProcessType.SaveModel);
+        var stages = new List<TaskType>();
+        stages.Add(TaskType.Download);
+        if (IsGeneratingError) stages.Add(TaskType.DebugError);
+        if (IsDetaching) stages.Add(TaskType.Detach);
+        if (IsDiscarding) stages.Add(TaskType.DiscardLinks);
+        if (IsCleaning) stages.Add(TaskType.Cleanup);
+        if (IsExporting) stages.Add(TaskType.Export);
+        // if (IsDiscarding | IsCleaning | IsExporting) stages.Add(TaskType.SaveModel);
         return stages;
     }
+
+    [Reactive] public bool IsGeneratingError { get; set; }
 }

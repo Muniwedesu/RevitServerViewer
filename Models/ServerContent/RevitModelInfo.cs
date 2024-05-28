@@ -13,4 +13,5 @@ public class RevitModelInfo : LockableFileSystemInfo
     public long ModelSize { get; set; }
     public int ProductVersion { get; set; }
     public long SupportSize { get; set; }
+    public DateTime ModifiedDate { get; set; }
 }

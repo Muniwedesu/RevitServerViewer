@@ -36,6 +36,7 @@ public class RevitServerConnection
         {
             if (ct.IsCancellationRequested) throw new TaskCanceledException();
             if (!path.StartsWith(root)) path = root + path;
+            var requestPath = "http://" + Host + ServicePath + path;
             var resp = await Client.GetStringAsync("http://" + Host + ServicePath + path + RequestTokens.Contents, ct);
             var folder = NetJSON.NetJSON.Deserialize<RevitFolder>(resp);
             foreach (var fi in folder.FolderInfos)
@@ -45,7 +46,17 @@ public class RevitServerConnection
 
             foreach (var m in folder.Models)
             {
+                var modelPath = requestPath + "|" + m.Name;
+                var re = await Client.GetStringAsync(modelPath + "/ModelInfo", ct);
+                var modelInfo = NetJSON.NetJSON.Deserialize<Dictionary<string, string>>(re)["DateModified"];
+                //ticks since epoch in milliseconds
+                var dat = modelInfo.Trim("/Date()".ToCharArray());
+                //1712823803000
+
+                var dt5 = DateTime.UnixEpoch;
+                var date = dt5.AddMilliseconds(1712823803000);
                 m.FullName = folder.Path + "\\" + m.Name;
+                m.ModifiedDate = date;
             }
 
             return folder;

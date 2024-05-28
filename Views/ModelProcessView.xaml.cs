@@ -15,6 +15,7 @@ public partial class ModelProcessView
             dr(this.Bind(ViewModel, vm => vm.CurrentTask, v => v.TaskHost.ViewModel));
             dr(this.OneWayBind(ViewModel, vm => vm.Elapsed, v => v.ElapsedBox.Text
                 , vmToViewConverterOverride: new TimeSpanConverter()));
+            dr(this.BindCommand(ViewModel, vm => vm.RetryCommand, v => v.RetryButton));
             // dr(this.Bind(ViewModel, vm => vm.Message, v => v.MessageBox.Text));
             // dr(this.Bind(ViewModel, vm => vm.Message, v => v.MessageToolTip.Content));
         });

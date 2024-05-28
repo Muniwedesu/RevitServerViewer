@@ -26,11 +26,12 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Background="{DynamicResource ControlFillColorDefaultBrush}"
-        Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}, Path=ActualWidth, Converter={StaticResource WidthConverter}}">
+          Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}, Path=ActualWidth, Converter={StaticResource WidthConverter}}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition MinWidth="20" Width="*" MaxWidth="240" />
             <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Border Grid.Column="0" BorderBrush="Green" BorderThickness="0">
@@ -73,6 +74,9 @@
         </Border>
         <Border Grid.Column="3" BorderBrush="Green" BorderThickness="0">
             <TextBlock Style="{StaticResource TextStyle}" Grid.Column="0" Name="ElapsedBox">00:00:00</TextBlock>
+        </Border>
+        <Border Grid.Column="4" BorderBrush="Green" BorderThickness="0">
+            <Button Grid.Column="0" Name="RetryButton">Retry</Button>
         </Border>
     </Grid>
 </reactiveUi:ReactiveUserControl>
