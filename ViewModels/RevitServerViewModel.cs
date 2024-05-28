@@ -28,7 +28,7 @@ public class RevitServerViewModel : ReactiveObject
                     .Subscribe(r =>
                         {
                             this.Loading = false;
-                            Folders.Add(new FolderViewModel(r));
+                            Folders.Add(new FolderViewModel(r, SelectedServer));
                         },
                         exception =>
                         {

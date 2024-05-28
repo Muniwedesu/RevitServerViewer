@@ -4,6 +4,11 @@ namespace RevitServerViewer.ViewModels;
 
 public class FolderViewModel : TreeItem
 {
+    public FolderViewModel(RevitFolder f, string server) : this(f)
+    {
+        this.DisplayName = server;
+    }
+
     public FolderViewModel(RevitFolder f)
     {
         DisplayName = f.Path?.Split("\\").LastOrDefault();

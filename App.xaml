@@ -8,8 +8,10 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ui:ControlsDictionary></ui:ControlsDictionary>
-                <ui:ThemesDictionary Theme="Light"></ui:ThemesDictionary>
+                <ui:ThemesDictionary Theme="Dark"></ui:ThemesDictionary>
+                <!-- <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/dark.xaml"></ResourceDictionary> -->
             </ResourceDictionary.MergedDictionaries>
+            <Thickness x:Key="ViewMargin">8,4</Thickness>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

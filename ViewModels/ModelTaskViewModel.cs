@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Reactive.Linq;
+using System.Windows.Threading;
 using IBS.IPC.DataTypes;
 using ReactiveUI.Fody.Helpers;
 using RevitServerViewer.Models;
@@ -34,19 +35,22 @@ public abstract class ModelTaskViewModel : ReactiveObject
 
     [Reactive] public TimeSpan Elapsed { get; set; } = TimeSpan.Zero;
     private const string? ElapsedFormat = @"hh\:mm\:ss";
-    public ObservableTimer TaskTimer { get; set; } = new(TimeSpan.FromMilliseconds(250));
+    public ObservableTimer TaskTimer { get; set; } = new(TimeSpan.FromMilliseconds(1000));
 
     public ModelTaskViewModel(string key, string sourceFile, string outputFolder)
     {
-        TaskTimer.Timer.ObserveOn(RxApp.MainThreadScheduler).Subscribe(x => Elapsed = x);
-        this.WhenAnyValue(x => x.IsActive).Subscribe(x =>
-        {
-            if (x) TaskTimer.Start();
-            else TaskTimer.Stop();
-        });
+        // TaskTimer.Subscribe.ObserveOn(RxApp.MainThreadScheduler)
+        //     .Subscribe(x => );
+
+        this.WhenAnyValue(x => x.IsActive)
+            .Subscribe(x =>
+            {
+                if (x) TaskTimer.Subscribe(y => Elapsed = y, RxApp.MainThreadScheduler);
+                else TaskTimer.Unsubscribe();
+            });
 
         this.WhenAnyValue(x => x.IsDone).Where(x => x)
-            .Subscribe(_ => TaskTimer.Stop());
+            .Subscribe(_ => TaskTimer.Unsubscribe());
 
         ModelKey = key;
         SourceFile = sourceFile;
@@ -87,11 +91,4 @@ public abstract class ModelTaskViewModel : ReactiveObject
         this.Stage = msg.OperationStage;
         this.StageDescription = msg.OperationMessage;
     }
-}
-
-public interface IModelTask
-{
-    public OperationType OperationType { get; }
-    public string OperationTypeString { get; }
-    public string OutputFile { get; set; }
 }

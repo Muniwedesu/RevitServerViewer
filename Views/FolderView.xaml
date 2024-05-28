@@ -7,13 +7,14 @@
                                 xmlns:reactiveUi="http://reactiveui.net"
                                 xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
                                 mc:Ignorable="d"
+                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                 d:DesignHeight="50" d:DesignWidth="300">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
-        <CheckBox Name="SelectedBox"></CheckBox>
-        <TextBlock Grid.Column="1" Name="NameBox"></TextBlock>
-    </Grid>
+        <Grid HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <CheckBox Name="SelectedBox"></CheckBox>
+            <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Column="1" Name="NameBox"></TextBlock>
+        </Grid>
 </reactiveUi:ReactiveUserControl>

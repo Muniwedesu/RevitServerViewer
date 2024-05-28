@@ -2,9 +2,11 @@
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
+using IBS.IPC.DataTypes;
 using ReactiveUI.Fody.Helpers;
 
 namespace RevitServerViewer.ViewModels;
+
 public enum ProcessType
 {
     Download
@@ -12,7 +14,9 @@ public enum ProcessType
     , Export
     , Cleanup
     , DiscardLinks
+    , SaveModel
 }
+
 public class ModelProcessViewModel : ReactiveObject
 {
     public DateTime StartupTime { get; set; } = DateTime.Now;
@@ -25,7 +29,6 @@ public class ModelProcessViewModel : ReactiveObject
     [Reactive] public TimeSpan Elapsed { get; set; }
     public string OutputFolder { get; }
 
-    
 
     public ModelProcessViewModel(string sourcePath, string outputFolder, ICollection<ProcessType> opts)
     {
@@ -79,6 +82,7 @@ public class ModelProcessViewModel : ReactiveObject
             {
                 ProcessType.Download => new ModelDownloadTaskViewModel(previousSource, OutputFolder)
                 , ProcessType.Detach => new ModelDetachTaskViewModel(previousSource, previous!.OutputFile)
+                , ProcessType.DiscardLinks => new ModelDiscardTaskViewModel(previous!.ModelKey, previous.OutputFile)
                 , ProcessType.Cleanup => new ModelCleanupTaskViewModel(previous!.ModelKey, previous.OutputFile
                     , OutputFolder)
                 , ProcessType.Export => new ModelExportTaskViewModel(previous!.ModelKey, previous.OutputFile
@@ -87,7 +91,16 @@ public class ModelProcessViewModel : ReactiveObject
             return CurrentTask;
         }
 
-        return previous;
+        return ShouldSaveModel(previous)
+            ? new ModelSaveTaskViewModel(previous!.ModelKey, previous!.SourceFile)
+            : previous;
+    }
+
+    private bool ShouldSaveModel(ModelTaskViewModel? previous)
+    {
+        return !FinishedTasks.Any(t => t is ModelSaveTaskViewModel)
+               && !FinishedTasks.All(t => t is ModelDownloadTaskViewModel)
+               && previous?.Stage != OperationStage.Error;
     }
 
     private void SetFinished(ModelTaskViewModel t)

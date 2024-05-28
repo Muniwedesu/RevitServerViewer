@@ -22,7 +22,8 @@ public class ModelExportTaskViewModel : ModelTaskViewModel
     {
         var svc = Locator.Current.GetService<IpcService>()!;
         var stageObservable
-            = svc.RequestOperation(new ExportModelRequest(SourceFile, OutputFolder, ModelKey, OutputFolder));
+            = svc.RequestOperation(new ExportModelRequest(SourceFile, OutputFolder, ModelKey, OutputFolder
+                , NavisworksExportParameters.Default));
         stageObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(UpdateStage);
         return true;
     }

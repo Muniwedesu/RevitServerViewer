@@ -22,13 +22,17 @@ public partial class App : Application
         AppDomain.CurrentDomain.AssemblyResolve += LoadRevitApi;
         Assembly.LoadFrom("C:\\Program Files\\Autodesk\\Revit 2021\\RevitAPI.dll");
         // TryLoadRevit();
+        var dc = new DialogCloser("caption", "text");
         Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetExecutingAssembly());
         Locator.CurrentMutable.RegisterLazySingleton(() => new RevitServerService());
         Locator.CurrentMutable.RegisterConstant(new IpcService());
-        Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelDownloadTaskViewModel>));
+        Locator.CurrentMutable.Register(() => new ModelDownloadTaskView()
+            , typeof(IViewFor<ModelDownloadTaskViewModel>));
         Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelDetachTaskViewModel>));
+        Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelDiscardTaskViewModel>));
         Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelExportTaskViewModel>));
         Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelCleanupTaskViewModel>));
+        Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelSaveTaskViewModel>));
         var pipes = H.Pipes.PipeWatcher.GetActivePipes()
             .Where(x => !(x.Contains("jetbrains")
                           || x.Contains("mojo")
@@ -43,7 +47,8 @@ public partial class App : Application
                           || x.Contains("pgsignal")
                           || (x.Contains("gecko"))
                 ))
-            .OrderBy(x => x).ToArray();
+            .OrderBy(x => x)
+            .ToArray();
     }
 
     private Assembly? LoadRevitApi(object? sender, ResolveEventArgs args)

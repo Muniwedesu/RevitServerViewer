@@ -1,18 +1,12 @@
-using System;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Reflection;
-using Autodesk.Revit.DB;
 using DynamicData;
 using IBS.IPC.DataTypes;
 using IBS.RevitServerTool;
-using ReactiveUI;
-using RevitServerViewer.Services;
 using Splat;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.Services;
 
 public class RevitServerService
 {
@@ -41,10 +35,13 @@ public class RevitServerService
 
     public void ClearDownloads() => this.Operations.Clear();
 
-    public IObservable<ModelOperationStatusMessage> AddDownload(string srcFile, string outFile, string outFolder)
+    public IObservable<ModelDownloadStatusMessage> AddDownload(string srcFile, string outFile, string outFolder)
     {
-        var st = _dl.Download(srcFile, outFile, outFolder).SubscribeOn(TaskPoolScheduler.Default);
-        _downloads = _downloads.Concat(st);
+        var st = _dl.Download(srcFile, outFile, outFolder)
+            .ObserveOn(TaskPoolScheduler.Default)
+            .SubscribeOn(TaskPoolScheduler.Default);
+        //todo shouldn't I use merge?
+        _downloads = _downloads.Merge(st);
         return st;
     }
 

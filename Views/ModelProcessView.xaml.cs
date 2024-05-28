@@ -19,4 +19,9 @@ public partial class ModelProcessView
             // dr(this.Bind(ViewModel, vm => vm.Message, v => v.MessageToolTip.Content));
         });
     }
+
+    private void ScrollViewer_OnSizeChanged(object? sender, EventArgs e)
+    {
+        ((ScrollViewer)sender).ScrollToEnd();
+    }
 }

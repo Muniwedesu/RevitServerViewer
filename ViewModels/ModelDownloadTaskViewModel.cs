@@ -1,35 +1,18 @@
 using System.IO;
 using System.Reactive.Linq;
 using IBS.IPC.DataTypes;
+using ReactiveUI.Fody.Helpers;
 using RevitServerViewer.Services;
 using Splat;
 
 namespace RevitServerViewer.ViewModels;
 
-class ModelCleanupTaskViewModel : ModelTaskViewModel
-{
-    public ModelCleanupTaskViewModel(string key, string sourceFile, string outputFolder)
-        : base(key, sourceFile, outputFolder)
-    {
-        OutputFile = sourceFile;
-        OperationType = OperationType.Cleanup;
-    }
-
-    public override string OperationTypeString => "Удаление неиспользуемых";
-
-    public override bool ExecuteCommand()
-    {
-        var svc = Locator.Current.GetService<IpcService>()!;
-        var stageObservable
-            = svc.RequestOperation(new CleanUpModelRequest(SourceFile, SourceFile, OutputFolder, new string[] { }));
-
-        stageObservable.ObserveOn(RxApp.MainThreadScheduler).Subscribe(UpdateStage);
-        return true;
-    }
-}
-
 public class ModelDownloadTaskViewModel : ModelTaskViewModel
 {
+    [Reactive] public string CurrentFileName { get; set; }
+    [Reactive] public string DisplayFileIndex { get; set; }
+    [Reactive] public string DisplayFileCount { get; set; }
+
     /// <summary>
     /// 
     /// </summary>
@@ -48,16 +31,26 @@ public class ModelDownloadTaskViewModel : ModelTaskViewModel
 
     public override bool ExecuteCommand()
     {
-        if (File.Exists(OutputFile))
-        {
-            this.Stage = OperationStage.Completed;
-            return true;
-        }
+        // if (File.Exists(OutputFile))
+        // {
+        //     //TODO: check dates or something (or move this to the downloader)s
+        //     this.Stage = OperationStage.Completed;
+        //     return true;
+        // }
 
         var svc = Locator.Current.GetService<RevitServerService>()!;
         svc.AddDownload(SourceFile, OutputFile, OutputFolder)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(UpdateStage);
         return true;
+    }
+
+    public void UpdateStage(ModelDownloadStatusMessage msg)
+    {
+        this.Stage = msg.OperationStage;
+        this.StageDescription = msg.OperationMessage;
+        this.DisplayFileIndex = msg.FileIndex.ToString();
+        this.DisplayFileCount = msg.FileCount == 0 ? string.Empty : "/" + msg.FileCount.ToString();
+        this.CurrentFileName = msg.FileName ?? string.Empty;
     }
 }

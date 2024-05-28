@@ -7,18 +7,33 @@
                                 xmlns:local="clr-namespace:RevitServerViewer"
                                 xmlns:reactiveUi="http://reactiveui.net"
                                 mc:Ignorable="d"
+                                xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 d:DesignHeight="300" d:DesignWidth="300">
-    <TreeView Grid.Column="0" Name="TreeRoot">
-        <TreeView.Resources>
-            <Style TargetType="{x:Type TreeViewItem}">
-                <!-- <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" /> -->
-                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-            </Style>
-        </TreeView.Resources>
-        <TreeView.ItemTemplate>
-            <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type local:TreeItem}">
-                <reactiveUi:ViewModelViewHost ViewModel="{Binding .}"></reactiveUi:ViewModelViewHost>
-            </HierarchicalDataTemplate>
-        </TreeView.ItemTemplate>
-    </TreeView>
+    <UserControl.Resources>
+        <ResourceDictionary>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Dark"></ui:ThemesDictionary>
+                <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/dark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <ui:Card Margin="{StaticResource ViewMargin}" Padding="4,4,0,4" VerticalAlignment="Top">
+        <TreeView Grid.Column="0" Name="TreeRoot">
+            <TreeView.Resources>
+
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <!-- <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" /> -->
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                </Style>
+            </TreeView.Resources>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type local:TreeItem}">
+                    <reactiveUi:ViewModelViewHost HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                  ViewModel="{Binding .}">
+                    </reactiveUi:ViewModelViewHost>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </ui:Card>
 </reactiveUi:ReactiveUserControl>

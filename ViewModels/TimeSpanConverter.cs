@@ -6,9 +6,11 @@ namespace RevitServerViewer.ViewModels;
 
 public class TimeSpanConverter : IBindingTypeConverter
 {
+    private const string Format = @"hh\:mm\:ss";
+
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return ((TimeSpan)value).ToString(@"hh\:mm\:ss\.ff");
+        return ((TimeSpan)value).ToString(Format);
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -18,16 +20,12 @@ public class TimeSpanConverter : IBindingTypeConverter
 
     public static object ConvertToView(TimeSpan value)
     {
-        return value.ToString(@"hh\:mm\:ss\.ff");
+        return value.ToString(Format);
     }
 
     public static string ConvertToVm(object value)
     {
         return string.Empty;
-        foreach (var i in Enumerable.Range(0, 10))
-        {
-            //no bitches
-        }
     }
 
     public int GetAffinityForObjects(Type fromType, Type toType)
@@ -39,7 +37,7 @@ public class TimeSpanConverter : IBindingTypeConverter
 
     public bool TryConvert(object? from, Type toType, object? conversionHint, out object? result)
     {
-        result = ((TimeSpan)(from ?? TimeSpan.Zero)).ToString(@"hh\:mm\:ss\.ff");
+        result = ((TimeSpan)(from ?? TimeSpan.Zero)).ToString(Format);
         return true;
     }
 }

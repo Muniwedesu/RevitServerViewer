@@ -13,8 +13,8 @@
             <Thickness x:Key="CheckBoxMargin">4,2</Thickness>
         </WrapPanel.Resources>
         <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="DetachBox">Отсоединение</CheckBox>
-        <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="DiscardBox">Удаление связей</CheckBox>
         <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="CleanupBox">Очистка</CheckBox>
+        <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="DiscardBox">Удаление связей</CheckBox>
         <WrapPanel>
             <CheckBox Margin="{StaticResource CheckBoxMargin}" Name="ExportBox">Экспорт</CheckBox>
             <!-- <Button>Настройки экспорта</Button> -->

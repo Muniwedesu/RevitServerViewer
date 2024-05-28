@@ -1,5 +1,5 @@
-﻿<reactiveUi:ReactiveUserControl x:TypeArguments="viewModels:ModelTaskViewModel"
-                                x:Class="RevitServerViewer.Views.ModelTaskView"
+﻿<reactiveUi:ReactiveUserControl x:TypeArguments="viewModels:ModelDownloadTaskViewModel"
+                                x:Class="RevitServerViewer.Views.ModelDownloadTaskView"
                                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -9,8 +9,7 @@
                                 xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
                                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 mc:Ignorable="d"
-                                d:DesignHeight="50" d:DesignWidth="Auto">
-
+                                d:DesignHeight="50" d:DesignWidth="500">
     <UserControl.Resources>
         <DataTemplateSelector x:Key="Selector">
         </DataTemplateSelector>
@@ -29,11 +28,33 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" BorderBrush="Black" BorderThickness="0" HorizontalAlignment="Left">
-                <TextBlock FontFamily="Courier New" Style="{StaticResource TextStyle}" Grid.Column="3"
-                           Name="OperationMessageBox">
-                    Exception occured somewhere idk
-                </TextBlock>
+            <Border Grid.Column="0" BorderBrush="Black" BorderThickness="0" HorizontalAlignment="Stretch">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <WrapPanel VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource TextStyle}" Grid.Column="0"
+                                   Name="FileIndexBox">
+                            3534
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource TextStyle}" Grid.Column="1"
+                                   Name="FileCountBox">
+                            94855
+                        </TextBlock>
+                    </WrapPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
+                        <TextBlock HorizontalAlignment="Right" Style="{StaticResource TextStyle}" Grid.Column="2"
+                                   Name="FileNameBox">
+                            transmissiondata.rwww
+                        </TextBlock>
+                        <TextBlock HorizontalAlignment="Right" Style="{StaticResource TextStyle}" Grid.Column="3"
+                                   Name="OperationMessageBox">
+                            Exception occured somewhere idk
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
             </Border>
             <Border Grid.Column="1" BorderBrush="Pink" BorderThickness="0" HorizontalAlignment="Right">
                 <!-- <TextBlock Style="{StaticResource TextStyle}" Grid.Column="3" Name="OperationStageBox"> -->
@@ -48,7 +69,7 @@
             </Border>
 
             <Border Grid.Column="2" BorderBrush="Magenta" BorderThickness="0" HorizontalAlignment="Right">
-                <TextBlock Style="{StaticResource TextStyle}" Grid.Column="4" Name="OperationTypeBox">Export</TextBlock>
+                <TextBlock Style="{StaticResource TextStyle}" Grid.Column="4" Name="OperationTypeBox"></TextBlock>
             </Border>
 
             <Border Grid.Column="3" BorderBrush="Magenta" BorderThickness="0" HorizontalAlignment="Right">

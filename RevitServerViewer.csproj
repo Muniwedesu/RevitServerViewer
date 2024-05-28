@@ -11,74 +11,74 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="H.Formatters" Version="2.1.0-dev.322" />
-      <PackageReference Include="H.Formatters.BinaryFormatter" Version="2.1.0-dev.322" />
-      <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
-      <PackageReference Include="MultimediaTimer" Version="1.0.1" />
-      <PackageReference Include="NetJSON" Version="1.4.4" />
-      <PackageReference Include="ReactiveUI" Version="19.5.72" />
-      <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
-      <PackageReference Include="ReactiveUI.WPF" Version="19.5.72" />
-      <PackageReference Include="WPF-UI" Version="3.0.3" />
+        <PackageReference Include="H.Formatters" Version="2.1.0-dev.322"/>
+        <PackageReference Include="H.Formatters.BinaryFormatter" Version="2.1.0-dev.322"/>
+        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0"/>
+        <PackageReference Include="NetJSON" Version="1.4.4"/>
+        <PackageReference Include="ReactiveUI" Version="19.5.72"/>
+        <PackageReference Include="ReactiveUI.Fody" Version="19.5.41"/>
+        <PackageReference Include="ReactiveUI.WPF" Version="19.5.72"/>
+        <PackageReference Include="WPF-UI" Version="3.0.4" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\PipesTutorial\IBS.IPC\IBS.IPC.csproj" />
-      <ProjectReference Include="..\..\RevitServerTool\RevitServerTool.csproj" />
+        <ProjectReference Include="..\..\PipesTutorial\IBS.IPC\IBS.IPC.csproj"/>
+        <ProjectReference Include="..\..\RevitServerTool\RevitServerTool.csproj"/>
+        <ProjectReference Include="..\Multimedia-Timer\MultimediaTimer\MultimediaTimer.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="H.Formatters">
-        <HintPath>F:\source\IBS.ClashGrouper\packages\H.Formatters.2.1.0-dev.322\lib\net451\H.Formatters.dll</HintPath>
-      </Reference>
-      <Reference Include="H.Pipes">
-        <HintPath>F:\source\IBS.ClashGrouper\packages\H.Pipes.2.1.0-dev.322\lib\net462\H.Pipes.dll</HintPath>
-      </Reference>
-      <Reference Include="RevitAPI">
-        <HintPath>H:\RevitApiDll\21\RevitAPI.dll</HintPath>
-        <Private>False</Private>
-      </Reference>
+        <Reference Include="H.Formatters">
+            <HintPath>F:\source\IBS.ClashGrouper\packages\H.Formatters.2.1.0-dev.322\lib\net451\H.Formatters.dll</HintPath>
+        </Reference>
+        <Reference Include="H.Pipes">
+            <HintPath>F:\source\IBS.ClashGrouper\packages\H.Pipes.2.1.0-dev.322\lib\net462\H.Pipes.dll</HintPath>
+        </Reference>
+        <Reference Include="RevitAPI">
+            <HintPath>H:\RevitApiDll\21\RevitAPI.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup>
-      <Page Update="Views\FolderView.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
-      <Page Update="Views\LoadingView.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
-      <Page Update="Views\MainWindow.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
-      <Page Update="Views\ModelView.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
-      <Page Update="Views\ModelProcessView.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
-      <Page Update="Views\RevitServerView.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
+        <Page Update="Views\FolderView.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="Views\LoadingView.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="Views\MainWindow.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="Views\ModelView.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="Views\ModelProcessView.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="Views\RevitServerView.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
     </ItemGroup>
 
-<!--    <ItemGroup>-->
-<!--      <ApplicationDefinition Include="App.xaml">-->
-<!--        <Generator>MSBuild:Compile</Generator>-->
-<!--        <XamlRuntime>Wpf</XamlRuntime>-->
-<!--        <SubType>Designer</SubType>-->
-<!--      </ApplicationDefinition>-->
-<!--    </ItemGroup>-->
+    <!--    <ItemGroup>-->
+    <!--      <ApplicationDefinition Include="App.xaml">-->
+    <!--        <Generator>MSBuild:Compile</Generator>-->
+    <!--        <XamlRuntime>Wpf</XamlRuntime>-->
+    <!--        <SubType>Designer</SubType>-->
+    <!--      </ApplicationDefinition>-->
+    <!--    </ItemGroup>-->
 
 </Project>

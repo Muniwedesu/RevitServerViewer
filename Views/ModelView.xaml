@@ -7,9 +7,9 @@
                                 xmlns:reactiveUi="http://reactiveui.net"
                                 xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
                                 mc:Ignorable="d"
+                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                 d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition />

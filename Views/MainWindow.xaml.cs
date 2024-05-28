@@ -20,8 +20,9 @@ public partial class MainWindow
             dr(this.OneWayBind(ViewModel, vm => vm.Downloads, v => v.DownloadBox.ItemsSource));
             dr(this.Bind(ViewModel, vm => vm.SelectedServer, v => v.ServerBox.SelectedItem));
             dr(this.Bind(ViewModel, vm => vm.DisplayModel, v => v.ViewHost.ViewModel));
-            dr(this.Bind(ViewModel, vm => vm.ConnectionString, v => v.ConnectionBox.Text));
+            // dr(this.Bind(ViewModel, vm => vm.ConnectionString, v => v.ConnectionBox.Text));
             dr(this.Bind(ViewModel, vm => vm.SelectedVersion, v => v.VersionBox.SelectedItem));
+            dr(this.Bind(ViewModel, vm => vm.MaxAppCount, v => v.MaxAppCountBox.Text));
             dr(this.OneWayBind(ViewModel, vm => vm.ServerVersions, v => v.VersionBox.ItemsSource));
             dr(this.OneWayBind(ViewModel, vm => vm.IsStandalone, v => v.VersionBox.IsEnabled));
             dr(this.OneWayBind(ViewModel, vm => vm.SaveOptions, v => v.SaveOptionsHost.ViewModel));

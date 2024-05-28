@@ -30,6 +30,8 @@ public class MainWindowViewModel : ReactiveObject
 
     [Reactive] public string SelectedVersion { get; set; } = "2021";
 
+    [Reactive] public int MaxAppCount { get; set; } = 4;
+
     public string[] ServerVersions { get; } = { "2020", "2021", "2022", "2023" };
 
     public MainWindowViewModel()
@@ -40,22 +42,24 @@ public class MainWindowViewModel : ReactiveObject
         // _ipcSvc.WhenAnyValue(x => x.Connected)
         //     .ObserveOn(RxApp.MainThreadScheduler)
         //     .Subscribe(x => ConnectionString = x ? "Connected" : "Not connected");
-        // _ipcSvc.WhenAnyValue(x => x.RevitVersion)
+        // _ipcSvc.WhenAnyValue(x => x.RevitVersionString)
         //     .ObserveOn(RxApp.MainThreadScheduler)
         //     .WhereNotNull()
         //     .Subscribe(OnVersionReceived);
-        //TODO: or smth
         this.WhenAnyValue(x => x.SelectedVersion)
             .ObserveOn(RxApp.MainThreadScheduler)
-            .BindTo(this.ServerViewModel, x => x.Version);
+            .BindTo(ServerViewModel, x => x.Version);
+        this.WhenAnyValue(x => x.MaxAppCount)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .BindTo(_ipcSvc, x => x.MaxAppCount);
         this.WhenAnyValue(x => x.SelectedVersion)
             .ObserveOn(RxApp.MainThreadScheduler)
-            .BindTo(this._ipcSvc, x => x.RevitVersion);
+            .BindTo(_ipcSvc, x => x.RevitVersionString);
 
         this.WhenAnyValue(x => x.SelectedVersion)
             .WhereNotNull()
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(OnVersionChanged);
+            .Subscribe(RereadRSN);
 
         var isIdling = new ReplaySubject<bool>(1);
         this.WhenAnyValue(x => x.SelectedVersion).BindTo(this, model => model.ServerViewModel.Version);
@@ -77,7 +81,8 @@ public class MainWindowViewModel : ReactiveObject
         this.IsStandalone = false;
     }
 
-    private void OnVersionChanged(string ver)
+    // ReSharper disable once InconsistentNaming
+    private void RereadRSN(string ver)
     {
         ServerList.Clear();
         if (!File.Exists(ConfigPath(ver))) return;
@@ -102,7 +107,7 @@ public class MainWindowViewModel : ReactiveObject
             .Where(m => m.IsSelected)
             .Select(x => x.FullName)
             .ToArray();
-        //TODO: set destination folder
+        //TODO: ability to change destination folder in UI
         var outputFolder = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\RS\{SelectedServer}\";
 
         var opts = SaveOptions.GetTasks();

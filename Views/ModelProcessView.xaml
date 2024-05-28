@@ -8,42 +8,70 @@
                                 xmlns:reactiveUi="http://reactiveui.net"
                                 xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
                                 mc:Ignorable="d"
-                                d:DesignHeight="50" d:DesignWidth="800">
+                                d:DesignHeight="Auto" d:DesignWidth="800">
 
     <UserControl.Resources>
-        <DataTemplateSelector x:Key="Selector">
-        </DataTemplateSelector>
-        <Style x:Key="TextStyle" TargetType="TextBlock">
-            <Setter Property="Margin" Value="2"></Setter>
-            <Setter Property="VerticalAlignment" Value="Center"></Setter>
-        </Style>
-        <local:ListWidthConverter x:Key="WidthConverter" />
+        <ResourceDictionary>
+            <DataTemplateSelector x:Key="Selector">
+            </DataTemplateSelector>
+            <Style x:Key="TextStyle" TargetType="TextBlock">
+                <Setter Property="Margin" Value="2"></Setter>
+                <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            </Style>
+            <local:ListWidthConverter x:Key="WidthConverter" />
+            <ResourceDictionary.MergedDictionaries>
+                <!-- <ui:ThemesDictionary Theme="Dark"></ui:ThemesDictionary> -->
+                <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/dark.xaml"></ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
-    <Grid
+    <Grid Background="{DynamicResource ControlFillColorDefaultBrush}"
         Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}, Path=ActualWidth, Converter={StaticResource WidthConverter}}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition MinWidth="20" Width="Auto" MaxWidth="300" />
+            <ColumnDefinition MinWidth="20" Width="*" MaxWidth="240" />
             <ColumnDefinition />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Border Grid.Column="0" BorderBrush="Green" BorderThickness="1">
+        <Border Grid.Column="0" BorderBrush="Green" BorderThickness="0">
             <TextBlock Style="{StaticResource TextStyle}" Grid.Column="0" Name="StartupBox">00:00:00</TextBlock>
         </Border>
 
-        <Border Grid.Column="1" BorderBrush="Blue" BorderThickness="1">
-            <TextBlock Style="{StaticResource TextStyle}" TextTrimming="CharacterEllipsis"
-                       Name="NameBox">
-                <TextBlock.ToolTip>
-                    <ToolTip Name="NameToolTip" />
-                </TextBlock.ToolTip>
-                C:\Users\mfmff\Desktop\RS\Projects\Samolet Alkhimovo\000_INITIAL DATA\Дом 15\002_КР\АЛХ_4-5_15_1-2_КР_КЖ0.1.rvt
-            </TextBlock>
+        <Border Margin="4,4" Grid.Column="1" BorderBrush="Blue" BorderThickness="0">
+            <Grid>
+                <ScrollViewer Margin="5,0,0,0" SizeChanged="ScrollViewer_OnSizeChanged"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Disabled">
+                    <TextBlock HorizontalAlignment="Right"
+                               TextAlignment="Right"
+                               Style="{StaticResource TextStyle}"
+                               Name="NameBox">
+                        <TextBlock.ToolTip>
+                            <ToolTip Name="NameToolTip" />
+                        </TextBlock.ToolTip>
+                        C:\Users\mfmff\Desktop\RS\Projects\Samolet Alkhimovo\000_INITIAL DATA\Дом 15\002_КР\АЛХ_4-5_15_1-2_КР_КЖ0.1.rvt
+                    </TextBlock>
+                </ScrollViewer>
+                <Border SnapsToDevicePixels="True">
+                    <Border.Background>
+                        <LinearGradientBrush ColorInterpolationMode="ScRgbLinearInterpolation" StartPoint="0 0"
+                                             EndPoint="1 0">
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Offset="0" Color="{DynamicResource ControlFillColorDefault }" />
+                                <GradientStop Offset="0.01" Color="{DynamicResource ControlFillColorDefault }" />
+                                <GradientStop Offset="0.1" Color="Transparent" />
+                            </LinearGradientBrush.GradientStops>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+            </Grid>
         </Border>
-        <Border Grid.Column="2" BorderThickness="1" BorderBrush="Coral">
-            <reactiveUi:ViewModelViewHost Grid.Column="2" Name="TaskHost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"></reactiveUi:ViewModelViewHost>
+        <Border VerticalAlignment="Center" Grid.Column="2" BorderThickness="0" BorderBrush="Coral">
+            <reactiveUi:ViewModelViewHost Grid.Column="2" Name="TaskHost" HorizontalAlignment="Stretch"
+                                          HorizontalContentAlignment="Stretch">
+            </reactiveUi:ViewModelViewHost>
         </Border>
-        <Border Grid.Column="3" BorderBrush="Green" BorderThickness="1">
+        <Border Grid.Column="3" BorderBrush="Green" BorderThickness="0">
             <TextBlock Style="{StaticResource TextStyle}" Grid.Column="0" Name="ElapsedBox">00:00:00</TextBlock>
         </Border>
     </Grid>
