@@ -11,16 +11,14 @@ namespace RevitServerViewer.ViewModels;
 
 public class ModelDownloadTaskViewModel : ModelTaskViewModel
 {
-    [Reactive] public string CurrentFileName { get; set; }
-    [Reactive] public string DisplayFileIndex { get; set; }
-    [Reactive] public string DisplayFileCount { get; set; }
+    [Reactive] public string CurrentFileName { get; set; } = string.Empty;
+    [Reactive] public string DisplayFileIndex { get; set; } = string.Empty;
+    [Reactive] public string DisplayFileCount { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="sourceFile">Path to the model on RS</param>
-    /// <param name="outputFolder">Path to the output folder root</param>
-    /// <param name="modifiedDate"></param>
+    // /// <param name="key"><inheritdoc cref="ModelTaskViewModel(string,string,string)"  path="/param[@name='key']"/></param>
+    /// <param name="sourceFile"><inheritdoc cref="ModelTaskViewModel(string,string,string)"  path="/param[@name='sourceFile']"/></param>
+    /// <param name="outputFolder"><inheritdoc cref="ModelTaskViewModel(string,string,string)"  path="/param[@name='outputFolder']"/></param>
+    /// <param name="modifiedDate">Last time the RS rvt file was changed</param>
     public ModelDownloadTaskViewModel(string sourceFile, string outputFolder, DateTime modifiedDate)
         : base(key: sourceFile, sourceFile: sourceFile, outputFolder: outputFolder)
     {

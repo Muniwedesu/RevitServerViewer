@@ -8,12 +8,9 @@ namespace RevitServerViewer.ViewModels;
 
 public class ModelDetachTaskViewModel : ModelTaskViewModel
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="key">Path on the RS </param>
-    /// <param name="sourceFile">Path to the .rvt file</param>
-    public ModelDetachTaskViewModel(string key, string sourceFile) : base(key, sourceFile, sourceFile)
+    /// <inheritdoc />
+    public ModelDetachTaskViewModel(string key, string sourceFile, string outputFolder)
+        : base(key, sourceFile, outputFolder)
     {
         OutputFile = sourceFile;
         OperationType = OperationType.Detach;

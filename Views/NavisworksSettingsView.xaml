@@ -1,0 +1,65 @@
+﻿<reactiveUi:ReactiveUserControl x:TypeArguments="viewModels:SaveSettingsViewModel"
+                                x:Class="RevitServerViewer.Views.NavisworksSettingsView"
+                                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                                xmlns:reactiveUi="http://reactiveui.net"
+                                xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
+                                xmlns:views="clr-namespace:RevitServerViewer.Views"
+                                xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                                mc:Ignorable="d"
+                                d:DesignHeight="Auto" d:DesignWidth="633">
+
+    <!-- <UserControl.Resources> -->
+    <!--     <ResourceDictionary> -->
+    <!--         <DataTemplateSelector x:Key="Selector"></DataTemplateSelector> -->
+    <!--         <views:ListWidthConverter x:Key="WidthConverter" /> -->
+    <!--         <ResourceDictionary.MergedDictionaries> -->
+    <!--             <ui:ThemesDictionary Theme="Dark"></ui:ThemesDictionary> -->
+    <!--             <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/light.xaml"></ResourceDictionary> -->
+    <!--         </ResourceDictionary.MergedDictionaries> -->
+    <!--     </ResourceDictionary> -->
+    <!-- </UserControl.Resources> -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <UniformGrid Columns="2">
+            <!-- convert params -->
+            <StackPanel Margin="4,0,4,0">
+                <ui:TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}">Конвертировать параметры</ui:TextBlock>
+                <ComboBox DisplayMemberPath="Name" Name="ParametersBox"></ComboBox>
+            </StackPanel>
+            <!-- coordinates -->
+            <StackPanel Margin="4,0,4,0">
+                <ui:TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}">Координаты</ui:TextBlock>
+                <ComboBox DisplayMemberPath="Name" Name="CoordinatesBox"></ComboBox>
+            </StackPanel>
+        </UniformGrid>
+        <StackPanel Margin="4,0,4,0" Grid.Row="1">
+            <UniformGrid Columns="2">
+                <CheckBox Name="ExportIdsBox">Конвертировать Id объектов</CheckBox>
+                <CheckBox Name="ExportUrlsBox">Преобразовать URL-адреса</CheckBox>
+                <CheckBox Name="ConvertLightsBox">Преобразовать источники света</CheckBox>
+                <CheckBox Name="ConvertRoomsToAttributesBox">Преобразовать помещение как атрибут</CheckBox>
+                <CheckBox Name="ConvertElementPropertiesBox">Преобразовать свойства объектов</CheckBox>
+                <CheckBox Name="ConvertLinkedCadBox">Преобразовать связанные CAD-файлы</CheckBox>
+                <CheckBox Name="ExportLinksBox">Преобразовать связанные файлы</CheckBox>
+                <CheckBox Name="ExportPartsBox">Преобразовать элементы конструкции</CheckBox>
+                <CheckBox Name="FindMissingMaterialsBox">Проверять и находить материалы</CheckBox>
+                <CheckBox Name="DivideIntoLevelsBox">Разделить файл на уровни</CheckBox>
+                <CheckBox Name="ExportRoomGeometryBox">Экспортировать геометрию помещения</CheckBox>
+            </UniformGrid>
+            <UniformGrid Columns="3">
+                <StackPanel Orientation="Vertical">
+                    <ui:TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}">Коэффициент фасетизации</ui:TextBlock>
+                    <TextBox Name="FacetingFactorBox"></TextBox>
+                </StackPanel>
+            </UniformGrid>
+        </StackPanel>
+        <!-- <Button Margin="4" Grid.Row="2" Name="BackCommandButton">Назад</Button> -->
+    </Grid>
+</reactiveUi:ReactiveUserControl>

@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using ReactiveUI.Fody.Helpers;
-using RevitServerViewer.ViewModels;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.ViewModels;
 
 public class RevitServerViewModel : ReactiveObject
 {
@@ -12,6 +12,8 @@ public class RevitServerViewModel : ReactiveObject
     public ObservableCollection<TreeItem> Folders { get; set; } = new();
     [Reactive] public string SelectedServer { get; set; }
     public string Version { get; set; }
+    private ISubject<bool> _loading = new ReplaySubject<bool>(1);
+    public IObservable<bool> Loading => _loading;
 
     public RevitServerViewModel()
     {
@@ -20,23 +22,23 @@ public class RevitServerViewModel : ReactiveObject
             .Subscribe(server =>
             {
                 _sub?.Dispose();
-                this.Loading = true;
+                _loading.OnNext(true);
                 Folders.Clear();
                 var rs = new RevitServerConnection(Version, server);
                 _sub = Observable.FromAsync(async (token) => await rs.GetFileStructureAsync(token))
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Subscribe(r =>
                         {
-                            this.Loading = false;
+                            _loading.OnNext(false);
                             Folders.Add(new FolderViewModel(r, SelectedServer));
                         },
                         exception =>
                         {
-                            this.Loading = false;
+                            _loading.OnNext(false);
                             Debug.WriteLine(exception);
                         });
             });
     }
 
-    [Reactive] public bool Loading { get; set; }
+    // [Reactive] public bool Loading { get; set; }
 }

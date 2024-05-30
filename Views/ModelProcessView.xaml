@@ -7,6 +7,8 @@
                                 xmlns:local="clr-namespace:RevitServerViewer"
                                 xmlns:reactiveUi="http://reactiveui.net"
                                 xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
+                                xmlns:views="clr-namespace:RevitServerViewer.Views"
+                                xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 mc:Ignorable="d"
                                 d:DesignHeight="Auto" d:DesignWidth="800">
 
@@ -18,15 +20,16 @@
                 <Setter Property="Margin" Value="2"></Setter>
                 <Setter Property="VerticalAlignment" Value="Center"></Setter>
             </Style>
-            <local:ListWidthConverter x:Key="WidthConverter" />
+            <views:ListWidthConverter x:Key="WidthConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <!-- <ui:ThemesDictionary Theme="Dark"></ui:ThemesDictionary> -->
                 <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/dark.xaml"></ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Background="{DynamicResource ControlFillColorDefaultBrush}"
-          Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}, Path=ActualWidth, Converter={StaticResource WidthConverter}}">
+    <Grid TextBlock.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+
+          Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}, Path=ActualWidth}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition MinWidth="20" Width="*" MaxWidth="240" />
@@ -67,16 +70,18 @@
                 </Border>
             </Grid>
         </Border>
-        <Border VerticalAlignment="Center" Grid.Column="2" BorderThickness="0" BorderBrush="Coral">
+        <Border Margin="4,0" VerticalAlignment="Center" Grid.Column="2" BorderThickness="0" BorderBrush="Coral">
             <reactiveUi:ViewModelViewHost Grid.Column="2" Name="TaskHost" HorizontalAlignment="Stretch"
                                           HorizontalContentAlignment="Stretch">
             </reactiveUi:ViewModelViewHost>
         </Border>
-        <Border Grid.Column="3" BorderBrush="Green" BorderThickness="0">
+        <Border Margin="4,0" Grid.Column="3" BorderBrush="Green" BorderThickness="0">
             <TextBlock Style="{StaticResource TextStyle}" Grid.Column="0" Name="ElapsedBox">00:00:00</TextBlock>
         </Border>
         <Border Grid.Column="4" BorderBrush="Green" BorderThickness="0">
-            <Button Grid.Column="0" Name="RetryButton">Retry</Button>
+            <Button Grid.Column="0" Name="RetryButton">
+                <ui:SymbolIcon Symbol="ArrowCounterclockwise24" Filled="True"></ui:SymbolIcon>
+            </Button>
         </Border>
     </Grid>
 </reactiveUi:ReactiveUserControl>

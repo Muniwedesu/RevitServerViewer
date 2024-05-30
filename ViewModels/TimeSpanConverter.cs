@@ -6,7 +6,7 @@ namespace RevitServerViewer.ViewModels;
 
 public class TimeSpanConverter : IBindingTypeConverter
 {
-    private const string Format = @"hh\:mm\:ss";
+    public const string Format = @"hh\:mm\:ss";
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {

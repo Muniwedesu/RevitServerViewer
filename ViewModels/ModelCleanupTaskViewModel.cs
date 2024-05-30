@@ -7,6 +7,7 @@ namespace RevitServerViewer.ViewModels;
 
 class ModelCleanupTaskViewModel : ModelTaskViewModel
 {
+    ///<inheritdoc/>
     public ModelCleanupTaskViewModel(string key, string sourceFile, string outputFolder)
         : base(key, sourceFile, outputFolder)
     {

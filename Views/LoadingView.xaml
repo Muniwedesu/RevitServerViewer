@@ -9,15 +9,24 @@
                                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
                                 d:DesignHeight="300" d:DesignWidth="600">
-    <StackPanel d:DesignHeight="150"
-                Height="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
-                Width="400">
+    <Grid VerticalAlignment="Center" d:DesignHeight="150"
+          Height="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}}"
+          Width="400">
         <!-- <ui:LoadingScreen HorizontalAlignment="Center"  -->
         <!--                   VerticalAlignment="Center"  -->
         <!--                   Name="StateBox"  -->
         <!--                   Content="123123"> </ui:LoadingScreen> -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <ui:ProgressRing VerticalAlignment="Center" IsIndeterminate="True">
         </ui:ProgressRing>
-        <TextBlock Margin="16" TextAlignment="Center" Name="StateBox">Загрузка 192.168.0.1</TextBlock>
-    </StackPanel>
+        <TextBlock Grid.Row="1" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                   Margin="16"
+                   TextAlignment="Center"
+                   Name="StateBox">
+            Загрузка 192.168.0.1
+        </TextBlock>
+    </Grid>
 </reactiveUi:ReactiveUserControl>

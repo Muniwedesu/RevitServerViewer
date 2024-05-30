@@ -34,6 +34,10 @@ public partial class App : Application
         Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelCleanupTaskViewModel>));
         Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelSaveTaskViewModel>));
         Locator.CurrentMutable.Register(() => new ModelTaskView(), typeof(IViewFor<ModelErrorTaskViewModel>));
+
+
+        Locator.CurrentMutable.RegisterConstant(new SaveSettingsViewModel(), typeof(SaveSettingsViewModel));
+        Locator.CurrentMutable.RegisterConstant(new ProcessesViewModel(), typeof(ProcessesViewModel));
         var pipes = H.Pipes.PipeWatcher.GetActivePipes()
             .Where(x => !(x.Contains("jetbrains")
                           || x.Contains("mojo")

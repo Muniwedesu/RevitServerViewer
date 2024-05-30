@@ -10,39 +10,55 @@ namespace RevitServerViewer.ViewModels;
 public abstract class ModelTaskViewModel : ReactiveObject
 {
     /// <summary>
-    /// path to that model on server?
+    /// path to the model on RS
     /// </summary>
     public string ModelKey { get; set; }
 
     /// <summary>
-    /// file path used for this task
+    /// source file path used for this task
     /// </summary>
     public string SourceFile { get; set; }
 
     /// <summary>
-    /// output file path for this task
+    /// output file path for this task, same as source by default
     /// </summary>
     public string OutputFolder { get; set; }
 
-    public OperationType OperationType { get; protected set; } = OperationType.Download;
+    /// <summary>
+    /// Stage displayed on the view
+    /// </summary>
     public abstract string OperationTypeString { get; }
-    public string OutputFile { get; set; }
-    [Reactive] public OperationStage Stage { get; set; }
-    [Reactive] public string StageString { get; set; }
-    [Reactive] public bool IsActive { get; set; }
-    [Reactive] public bool IsDone { get; set; }
-    [Reactive] public string? StageDescription { get; set; }
 
+    /// <summary>
+    /// Shows if task is executing
+    /// </summary>
+    [Reactive] public bool IsExecuting { get; set; }
+
+    /// <summary>
+    /// If task has stopped executing (state is completed or error)
+    /// </summary>
+    [Reactive] public bool IsDone { get; set; }
+
+    /// <summary>
+    /// By default is set to source file
+    /// </summary>
+    public string OutputFile { get; set; }
+
+    public OperationType OperationType { get; protected set; } = OperationType.Download;
+    [Reactive] public string? StageDescription { get; set; }
+    [Reactive] public OperationStage Stage { get; set; }
     [Reactive] public TimeSpan Elapsed { get; set; } = TimeSpan.Zero;
-    private const string? ElapsedFormat = @"hh\:mm\:ss";
     public ObservableTimer TaskTimer { get; set; } = new(TimeSpan.FromMilliseconds(1000));
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key">Path on the RS </param>
+    /// <param name="sourceFile">Path to the source .rvt file</param>
+    /// <param name="outputFolder">Base output folder location</param>
     public ModelTaskViewModel(string key, string sourceFile, string outputFolder)
     {
-        // TaskTimer.Subscribe.ObserveOn(RxApp.MainThreadScheduler)
-        //     .Subscribe(x => );
-
-        this.WhenAnyValue(x => x.IsActive)
+        this.WhenAnyValue(x => x.IsExecuting)
             .Subscribe(x =>
             {
                 if (x) TaskTimer.Subscribe(y => Elapsed = y, RxApp.MainThreadScheduler);
@@ -54,33 +70,26 @@ public abstract class ModelTaskViewModel : ReactiveObject
 
         ModelKey = key;
         SourceFile = sourceFile;
+        OutputFile = sourceFile;
         OutputFolder = outputFolder;
         this.WhenAnyValue(x => x.Stage)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(st =>
             {
-                StageString = GetStageString(st);
                 IsDone = st is OperationStage.Error or OperationStage.Completed;
-                IsActive = st == OperationStage.Started;
+                IsExecuting = st == OperationStage.Started;
                 Debug.WriteLine(this.ModelKey
-                                + " " + this.OperationTypeString
-                                + " " + this.StageString
-                                + " " + Elapsed.ToString(ElapsedFormat));
+                                + " " + Enum.GetName(typeof(OperationType), OperationType)
+                                + " " + Enum.GetName(typeof(OperationStage), st)
+                                + " " + Elapsed.ToString(TimeSpanConverter.Format));
                 //TODO: timer stuff
             });
     }
 
-    private static string GetStageString(OperationStage st)
-    {
-        return st switch
-        {
-            OperationStage.Requested => "В очереди"
-            , OperationStage.Started => "Выполняется"
-            , OperationStage.Completed => "Завершено"
-            , _ => "Ошибка"
-        };
-    }
-
+    /// <summary>
+    /// Show exception message and set state to Error
+    /// </summary>
+    /// <param name="exception"></param>
     protected void HandleException(Exception exception)
     {
         Stage = OperationStage.Error;
@@ -91,6 +100,10 @@ public abstract class ModelTaskViewModel : ReactiveObject
 
     public abstract bool ExecuteCommand();
 
+    /// <summary>
+    /// Updates stage and sets its description from message
+    /// </summary>
+    /// <param name="msg"></param>
     public void UpdateStage(ModelOperationStatusMessage msg)
     {
         Debug.WriteLine(ModelKey + " " + msg.OperationStage + " " + StageDescription);

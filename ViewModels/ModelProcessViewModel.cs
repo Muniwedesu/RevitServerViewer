@@ -37,7 +37,10 @@ public class ModelProcessViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> RetryCommand { get; set; }
     public Queue<ModelTaskViewModel> TaskQueue { get; } = new();
 
-    public ModelProcessViewModel(ModelViewModel sourceModel, string outputFolder, ICollection<TaskType> opts)
+    public ModelProcessViewModel(ModelViewModel sourceModel
+        , string outputFolder
+        , ICollection<TaskType> opts
+        , NavisworksExportSettings settings)
     {
         Name = sourceModel.FullName;
         OutputFolder = outputFolder;
@@ -48,12 +51,10 @@ public class ModelProcessViewModel : ReactiveObject
             last = t switch
             {
                 TaskType.Download => new ModelDownloadTaskViewModel(Name, OutputFolder, sourceModel.ModifiedDate)
-                , TaskType.Detach => new ModelDetachTaskViewModel(Name, last!.OutputFile)
-                , TaskType.DiscardLinks => new ModelDiscardTaskViewModel(Name, last!.OutputFile)
-                , TaskType.Cleanup => new ModelCleanupTaskViewModel(Name, last!.OutputFile
-                    , OutputFolder)
-                , TaskType.Export => new ModelExportTaskViewModel(Name, last!.OutputFile
-                    , OutputFolder)
+                , TaskType.Detach => new ModelDetachTaskViewModel(Name, last!.OutputFile, OutputFolder)
+                , TaskType.DiscardLinks => new ModelDiscardTaskViewModel(Name, last!.OutputFile, OutputFolder)
+                , TaskType.Cleanup => new ModelCleanupTaskViewModel(Name, last!.OutputFile, OutputFolder)
+                , TaskType.Export => new ModelExportTaskViewModel(Name, last!.OutputFile, OutputFolder, settings)
                 , _ => new ModelErrorTaskViewModel(Name, last!.OutputFile)
             };
             TaskQueue.Enqueue(last);
@@ -95,6 +96,7 @@ public class ModelProcessViewModel : ReactiveObject
 
     private void RetryFromLast()
     {
+        CurrentTask = null;
         CurrentTask = TaskQueue.Peek();
     }
 
@@ -141,7 +143,10 @@ public class ModelProcessViewModel : ReactiveObject
 
 public class ModelErrorTaskViewModel : ModelTaskViewModel
 {
-    public ModelErrorTaskViewModel(string sourcePath, string outputFile) : base(sourcePath, outputFile, outputFile) { }
+    public ModelErrorTaskViewModel(string sourcePath, string outputFile) : base(sourcePath, outputFile, outputFile)
+    {
+        OutputFile = outputFile;
+    }
 
     public override string OperationTypeString { get; } = "Ошибка";
 
