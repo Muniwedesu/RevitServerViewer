@@ -1,12 +1,15 @@
 using System.Net;
 using System.Net.Http;
+using Splat;
+using ILogger = Serilog.ILogger;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.Models.ServerContent;
 
 public class RevitServerConnection
 {
     private const string root = "/|";
     private readonly HttpClientHandler _requestHandler;
+    private readonly ILogger? _log;
     public string ServicePath { get; private set; }
     public const string DefaultHost = "192.168.0.8";
     public string Host { get; set; }
@@ -14,6 +17,7 @@ public class RevitServerConnection
 
     public RevitServerConnection(string version, string host = DefaultHost)
     {
+        _log = Locator.Current.GetService<Serilog.ILogger>();
         Host = host;
         _requestHandler = new HttpClientHandler
         {
@@ -37,7 +41,8 @@ public class RevitServerConnection
             if (ct.IsCancellationRequested) throw new TaskCanceledException();
             if (!path.StartsWith(root)) path = root + path;
             var requestPath = "http://" + Host + ServicePath + path;
-            var resp = await Client.GetStringAsync("http://" + Host + ServicePath + path + RequestTokens.Contents, ct);
+            //TODO: handle cancelled exception?
+            var resp = await Client.GetStringAsync($"http://{Host}{ServicePath}{path}{RequestTokens.Contents}", ct);
             var folder = NetJSON.NetJSON.Deserialize<RevitFolder>(resp);
             foreach (var fi in folder.FolderInfos)
             {
@@ -54,9 +59,11 @@ public class RevitServerConnection
                 //1712823803000
 
                 var dt5 = DateTime.UnixEpoch;
-                var date = dt5.AddMilliseconds(1712823803000);
+                // var date = dt5.AddMilliseconds(1712823803000);
+                var date = dt5.AddMilliseconds(Int64.Parse(dat));
                 m.FullName = folder.Path + "\\" + m.Name;
                 m.ModifiedDate = date;
+                _log?.Information("Load model: " + m);
             }
 
             return folder;

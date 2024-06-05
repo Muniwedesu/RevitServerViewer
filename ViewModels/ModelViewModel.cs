@@ -1,4 +1,6 @@
-﻿namespace RevitServerViewer.ViewModels;
+﻿using RevitServerViewer.Models.ServerContent;
+
+namespace RevitServerViewer.ViewModels;
 
 public class ModelViewModel : TreeItem
 {

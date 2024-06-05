@@ -1,4 +1,4 @@
-namespace RevitServerViewer;
+namespace RevitServerViewer.Models.ServerContent;
 
 public class RevitFolder
 {

@@ -8,6 +8,8 @@
         <UseWPF>true</UseWPF>
         <Configurations>Debug;Release</Configurations>
         <Platforms>x64</Platforms>
+        <AssemblyVersion>1.1.0</AssemblyVersion>
+        <FileVersion>1.1.0</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,12 +20,16 @@
         <PackageReference Include="ReactiveUI" Version="19.5.72"/>
         <PackageReference Include="ReactiveUI.Fody" Version="19.5.41"/>
         <PackageReference Include="ReactiveUI.WPF" Version="19.5.72"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="5.1.0-dev-00943" />
+        <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00972" />
         <PackageReference Include="WPF-UI" Version="3.0.4" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\PipesTutorial\IBS.IPC\IBS.IPC.csproj"/>
         <ProjectReference Include="..\..\RevitServerTool\RevitServerTool.csproj"/>
+        <ProjectReference Include="..\IBS.Shared\IBS.Shared.csproj" />
         <ProjectReference Include="..\Multimedia-Timer\MultimediaTimer\MultimediaTimer.csproj"/>
     </ItemGroup>
 

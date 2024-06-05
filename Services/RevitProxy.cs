@@ -77,9 +77,11 @@ public class RevitProxy : ReactiveObject
     private readonly IpcService _ipcSvc;
     private ObservableRevitProcess? _revit;
     private IObserver<ModelOperationStatusMessage>? _currentTaskObserver;
+    private Serilog.ILogger? _log;
 
     public RevitProxy(string modelKey, string revitVersion)
     {
+        _log = Locator.Current.GetService<Serilog.ILogger>();
         //TODO: check available RAM, do not launch new instances until we have enough
         //TODO: properly close apps that have fininished (and decide when task is considered finished)
         //TODO: implement retrying 
@@ -101,12 +103,12 @@ public class RevitProxy : ReactiveObject
                                     await RvtPipe!.WriteAsync(SerializableMessage.Create(x, x.GetType())))
                                 .Subscribe(_ =>
                                 {
-                                    Debug.WriteLine("Request " + x.ModelKey + " " + x.GetType().Name + " sent");
+                                    _log?.Information("Request " + x.ModelKey + " " + x.GetType().Name + " sent");
                                 });
                         }
                     });
             })
-            .Subscribe(x => { Debug.WriteLine(x); });
+            .Subscribe(x => { _log?.Information(x.ToString() ?? string.Empty); });
 
         var pipes = PipeWatcher.GetActivePipes();
     }
@@ -126,7 +128,7 @@ public class RevitProxy : ReactiveObject
             _pipeSubs.ForEach(ps => ps.Dispose());
             _pipeSubs.Clear();
             _pipeSubs.Add(RvtPipe.OnConnected()
-                .Subscribe(a => Debug.WriteLine(a.EventArgs.Connection.PipeName + " connected")));
+                .Subscribe(a => _log?.Information(a.EventArgs.Connection.PipeName + " connected")));
             _pipeSubs.Add(RvtPipe.OnMessage().Subscribe(ProcessMessage));
         }
     }
@@ -158,9 +160,9 @@ public class RevitProxy : ReactiveObject
 
             if (message is ModelOperationStatusMessage statusMessage)
             {
-                Debug.WriteLine("IPCsvc OnMessage : "
-                                + statusMessage.OperationType + " "
-                                + statusMessage.OperationStage);
+                _log?.Information("IPCSvcs status: "
+                                  + statusMessage.OperationType + " "
+                                  + statusMessage.OperationStage);
                 if (statusMessage.OperationStage is OperationStage.Completed or OperationStage.Error)
                 {
                     _currentTaskObserver!.OnNext(statusMessage);
@@ -174,9 +176,9 @@ public class RevitProxy : ReactiveObject
                 }
             }
         }
-        catch
+        catch (Exception e)
         {
-            Debug.WriteLine(nameof(IpcService) + " EX : " + msg.Message.SerializedString);
+            _log?.Error(e, nameof(IpcService) + " EX: " + msg.Message.SerializedString);
         }
     }
 

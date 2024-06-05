@@ -3,20 +3,26 @@ using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ReactiveUI.Fody.Helpers;
+using RevitServerViewer.Models.ServerContent;
+using Serilog;
+using Splat;
+using ILogger = Serilog.ILogger;
 
 namespace RevitServerViewer.ViewModels;
 
 public class RevitServerViewModel : ReactiveObject
 {
-    private IDisposable _sub;
+    private IDisposable? _sub;
     public ObservableCollection<TreeItem> Folders { get; set; } = new();
     [Reactive] public string SelectedServer { get; set; }
     public string Version { get; set; }
     private ISubject<bool> _loading = new ReplaySubject<bool>(1);
+    private readonly ILogger? _log;
     public IObservable<bool> Loading => _loading;
 
     public RevitServerViewModel()
     {
+        _log = Locator.Current.GetService<Serilog.ILogger>();
         this.WhenAnyValue(x => x.SelectedServer)
             .Where(s => !string.IsNullOrEmpty(s))
             .Subscribe(server =>
@@ -31,11 +37,12 @@ public class RevitServerViewModel : ReactiveObject
                         {
                             _loading.OnNext(false);
                             Folders.Add(new FolderViewModel(r, SelectedServer));
+                            _log?.Information($"Loaded structure for {SelectedServer}");
                         },
                         exception =>
                         {
                             _loading.OnNext(false);
-                            Debug.WriteLine(exception);
+                            _log?.Warning(exception, "Ex while loading RS folders");
                         });
             });
     }

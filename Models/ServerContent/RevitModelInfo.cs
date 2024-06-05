@@ -1,4 +1,4 @@
-namespace RevitServerViewer;
+namespace RevitServerViewer.Models.ServerContent;
 
 public class RevitModelInfo : LockableFileSystemInfo
 {
@@ -14,4 +14,9 @@ public class RevitModelInfo : LockableFileSystemInfo
     public int ProductVersion { get; set; }
     public long SupportSize { get; set; }
     public DateTime ModifiedDate { get; set; }
+
+    public override string ToString()
+    {
+        return $"{ModifiedDate:dd.MM.yyyy HH:mm:ss} - {FullName}";
+    }
 }

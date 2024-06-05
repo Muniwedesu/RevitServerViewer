@@ -159,11 +159,11 @@ public class DialogCloser
             .Subscribe(Timer_Elapsed_jan);
     }
 
-    private void Timer_Elapsed(long e)
-    {
-        int hwnd = WinApi.FindWindow("", m_dialog_caption);
-        Console.WriteLine(hwnd.ToString());
-    }
+    // private void Timer_Elapsed(long e)
+    // {
+    //     int hwnd = WinApi.FindWindow("", m_dialog_caption);
+    //     Console.WriteLine(hwnd.ToString());
+    // }
 
     private void Timer_Elapsed_jan(long n)
     {

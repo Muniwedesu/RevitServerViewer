@@ -7,6 +7,7 @@ using DynamicData;
 using DynamicData.Binding;
 using IBS.IPC.DataTypes;
 using ReactiveUI.Fody.Helpers;
+using Splat;
 
 namespace RevitServerViewer.ViewModels;
 
@@ -26,7 +27,7 @@ public class ModelProcessViewModel : ReactiveObject
     public DateTime StartupTime { get; set; } = DateTime.Now;
     public string DisplayStartupTime { get; set; } = DateTime.Now.ToString("HH:mm:ss");
     public string Name { get; set; }
-
+    public Serilog.ILogger _log;
     [Reactive] public ModelTaskViewModel? CurrentTask { get; set; } = null;
 
     // public Queue<TaskType> RemainingTaskTypes { get; set; } = new();
@@ -42,6 +43,7 @@ public class ModelProcessViewModel : ReactiveObject
         , ICollection<TaskType> opts
         , NavisworksExportSettings settings)
     {
+        _log = Locator.Current.GetService<Serilog.ILogger>()!;
         Name = sourceModel.FullName;
         OutputFolder = outputFolder;
         // foreach (var o in opts) RemainingTaskTypes.Enqueue(o);
@@ -64,17 +66,18 @@ public class ModelProcessViewModel : ReactiveObject
 
         this.WhenAnyValue(x => x.CurrentTask)
             .WhereNotNull()
-            .Subscribe(t =>
+            .Subscribe(task =>
             {
                 CanRetry.OnNext(false);
                 //Handles first task
                 // t ??= SetNextTask(t);
-                t?.WhenAnyValue(x => x.IsDone)
+                task?.WhenAnyValue(x => x.IsDone)
                     .Where(x => x)
                     .ObserveOn(RxApp.MainThreadScheduler)
-                    .Subscribe(_ => MoveToFinished(t));
-                t?.WhenAnyValue(x => x.Elapsed).Subscribe(UpdateTotalTime(t));
-                t?.Execute();
+                    .Subscribe(_ => MoveToFinished(task));
+                task?.WhenAnyValue(x => x.Elapsed)
+                    .Subscribe(time => UpdateTotalTime(time, task));
+                task?.Execute();
             });
         FinishedTasks.ToObservableChangeSet()
             .OnItemAdded(x =>
@@ -85,10 +88,11 @@ public class ModelProcessViewModel : ReactiveObject
             {
                 if (!TaskQueue.Any() && CurrentTask is { IsDone: true })
                 {
-                    Debug.WriteLine(this.Name
-                                    + " finished "
-                                    + FinishedTasks.Select(x => x.Elapsed).Aggregate((a, b) => a + b)
-                                        .ToString(ElapsedFormat));
+                    _log.Information(this.Name
+                                     + " finished "
+                                     + FinishedTasks.Select(x => x.Elapsed)
+                                         .Aggregate((a, b) => a + b)
+                                         .ToString(ElapsedFormat));
                 }
             });
         CurrentTask = TaskQueue.Peek();
@@ -97,12 +101,17 @@ public class ModelProcessViewModel : ReactiveObject
     private void RetryFromLast()
     {
         CurrentTask = null;
-        CurrentTask = TaskQueue.Peek();
+        var ct = TaskQueue.Peek();
+        ct.Reset();
+        //because it doesn't always fire in CurrentTask observer
+        CanRetry.OnNext(false);
+        CurrentTask = ct;
     }
 
-    private Action<TimeSpan> UpdateTotalTime(ModelTaskViewModel t)
+    private void UpdateTotalTime(TimeSpan x, ModelTaskViewModel vm)
     {
-        return x => Elapsed = FinishedTasks.Where(t2 => t != t2).Select(y => y.Elapsed)
+        Elapsed = FinishedTasks.Where(vm2 => vm != vm2)
+            .Select(y => y.Elapsed)
             .Aggregate(TimeSpan.Zero, (a, b) => a + b) + x;
     }
 
@@ -110,7 +119,7 @@ public class ModelProcessViewModel : ReactiveObject
     {
         if (previous?.Stage is OperationStage.Error)
         {
-            Debug.WriteLine("Prev errored");
+            _log.Information($"{previous.OperationType} for {previous.ModelKey} errored");
             this.CanRetry.OnNext(true);
             return null;
         }
@@ -118,7 +127,7 @@ public class ModelProcessViewModel : ReactiveObject
         if (TaskQueue.TryPeek(out var nextTask))
             //TODO: check if CurrentTask should be set here anyway
             return nextTask;
-
+        //TODO: add this to the queue instead
         return ShouldSaveModel(previous)
             ? new ModelSaveTaskViewModel(previous!.ModelKey, previous!.SourceFile)
             : previous;
@@ -135,6 +144,8 @@ public class ModelProcessViewModel : ReactiveObject
 
     private void MoveToFinished(ModelTaskViewModel t)
     {
+        //TODO: remove this after fixing save command
+        if (!TaskQueue.Any()) return;
         if (t is { Stage: OperationStage.Completed } && !FinishedTasks.Contains(t))
             FinishedTasks.Add(TaskQueue.Dequeue());
         else CanRetry.OnNext(true);

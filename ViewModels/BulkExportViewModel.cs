@@ -9,6 +9,7 @@ using ReactiveUI.Fody.Helpers;
 using RevitServerViewer.Services;
 using RevitServerViewer.Views;
 using Splat;
+using ILogger = Serilog.ILogger;
 
 namespace RevitServerViewer.ViewModels;
 
@@ -38,6 +39,7 @@ public class BulkExportViewModel : ReactiveObject
 
     public BulkExportViewModel()
     {
+        _log = Locator.Current.GetService<Serilog.ILogger>();
         SavePath = File.Exists(".\\path") ? File.ReadAllText(".\\path") : SavePath = DefaultSavePath;
         this.WhenAnyValue(x => x.SavePath)
             .Subscribe(x => { File.WriteAllText(".\\path", x); });
@@ -58,8 +60,8 @@ public class BulkExportViewModel : ReactiveObject
             .BindTo(ServerViewModel, x => x.Version);
 
         this.WhenAnyValue(x => x.SelectedVersion)
+            // .Skip(1)
             .WhereNotNull()
-            .Skip(1)
             .ObserveOn(RxApp.MainThreadScheduler)
             .BindTo(ipcSvc, x => x.RevitVersionString);
 
@@ -69,7 +71,6 @@ public class BulkExportViewModel : ReactiveObject
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe((v) =>
             {
-                Debug.WriteLine(v.GetHashCode());
                 var obs = Observable.FromAsync((ct) => RereadRSN(v, ct))
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Subscribe(servers =>
@@ -148,6 +149,7 @@ public class BulkExportViewModel : ReactiveObject
     }
 
     public Interaction<string, string> SavePathInteraction = new();
+    private readonly ILogger? _log;
 
     [Reactive] public string SavePath { get; set; }
 

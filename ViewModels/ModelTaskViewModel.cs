@@ -4,11 +4,14 @@ using System.Windows.Threading;
 using IBS.IPC.DataTypes;
 using ReactiveUI.Fody.Helpers;
 using RevitServerViewer.Models;
+using Splat;
 
 namespace RevitServerViewer.ViewModels;
 
 public abstract class ModelTaskViewModel : ReactiveObject
 {
+    private Serilog.ILogger? _log;
+
     /// <summary>
     /// path to the model on RS
     /// </summary>
@@ -58,6 +61,7 @@ public abstract class ModelTaskViewModel : ReactiveObject
     /// <param name="outputFolder">Base output folder location</param>
     public ModelTaskViewModel(string key, string sourceFile, string outputFolder)
     {
+        _log = Locator.Current.GetService<Serilog.ILogger>();
         this.WhenAnyValue(x => x.IsExecuting)
             .Subscribe(x =>
             {
@@ -73,17 +77,21 @@ public abstract class ModelTaskViewModel : ReactiveObject
         OutputFile = sourceFile;
         OutputFolder = outputFolder;
         this.WhenAnyValue(x => x.Stage)
+            .Skip(1)
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Subscribe(st =>
-            {
-                IsDone = st is OperationStage.Error or OperationStage.Completed;
-                IsExecuting = st == OperationStage.Started;
-                Debug.WriteLine(this.ModelKey
-                                + " " + Enum.GetName(typeof(OperationType), OperationType)
-                                + " " + Enum.GetName(typeof(OperationStage), st)
-                                + " " + Elapsed.ToString(TimeSpanConverter.Format));
-                //TODO: timer stuff
-            });
+            .Subscribe(OnStageChanged);
+    }
+
+    private void OnStageChanged(OperationStage st)
+
+    {
+        IsDone = st is OperationStage.Error or OperationStage.Completed;
+        IsExecuting = st == OperationStage.Started;
+        _log?.Information(this.ModelKey
+                          + " " + Enum.GetName(typeof(OperationType), OperationType)
+                          + " " + Enum.GetName(typeof(OperationStage), st)
+                          + " " + Elapsed.ToString(TimeSpanConverter.Format));
+        //TODO: timer stuff
     }
 
     /// <summary>
@@ -106,8 +114,19 @@ public abstract class ModelTaskViewModel : ReactiveObject
     /// <param name="msg"></param>
     public void UpdateStage(ModelOperationStatusMessage msg)
     {
-        Debug.WriteLine(ModelKey + " " + msg.OperationStage + " " + StageDescription);
+        _log?.Information(ModelKey
+                          + " " + msg.OperationStage
+                          + " " + msg.OperationMessage
+                          + " " + StageDescription);
         this.Stage = msg.OperationStage;
         this.StageDescription = msg.OperationMessage;
+    }
+
+    public void Reset()
+    {
+        IsExecuting = default;
+        IsDone = default;
+        this.Stage = default;
+        TaskTimer.Reset();
     }
 }

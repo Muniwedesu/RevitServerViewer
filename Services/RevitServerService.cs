@@ -17,7 +17,13 @@ public class RevitServerService
     public void SetServer(string address, string version)
     {
         _dl = new RevitServerDownloader(address, version);
+        Address = address;
+        ServerVersion = version;
     }
+
+    public string Address { get; set; }
+
+    public string ServerVersion { get; set; }
 
     public IObservable<IChangeSet<ProcessingState, string>> Connect() => Operations.Connect();
 
@@ -25,10 +31,11 @@ public class RevitServerService
 
     public IObservable<ModelDownloadStatusMessage> AddDownload(string srcFile, string outFile, string outFolder)
     {
-        var st = _dl.Download(srcFile, outFile, outFolder)
+        //TODO: this was intended to be used as a singleton but it seems to work fine anyway
+        
+        var st = new RevitServerDownloader(Address, ServerVersion).Download(srcFile, outFile, outFolder)
             .ObserveOn(TaskPoolScheduler.Default)
             .SubscribeOn(TaskPoolScheduler.Default);
-        //todo shouldn't I use merge?
         _downloads = _downloads.Merge(st);
         return st;
     }
