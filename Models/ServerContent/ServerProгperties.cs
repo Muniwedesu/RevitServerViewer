@@ -1,6 +1,6 @@
 using System.Security.Principal;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.Models.ServerContent;
 
 public struct ServerProгperties
 {

@@ -1,7 +1,7 @@
 ﻿using IBS.IPC.DataTypes;
 using IBS.RevitServerTool;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.Models;
 
 public struct ProcessingState
 {

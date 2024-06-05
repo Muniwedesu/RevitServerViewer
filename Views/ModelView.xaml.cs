@@ -1,4 +1,4 @@
-﻿namespace RevitServerViewer;
+﻿namespace RevitServerViewer.Views;
 
 public partial class ModelView
 {

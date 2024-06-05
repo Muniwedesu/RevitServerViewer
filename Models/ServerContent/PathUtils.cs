@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace RevitServerViewer;
+namespace RevitServerViewer.Models.ServerContent;
 
 public static class PathUtils
 {

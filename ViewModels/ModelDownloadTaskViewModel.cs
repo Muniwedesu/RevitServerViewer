@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using IBS.IPC.DataTypes;
 using ReactiveUI.Fody.Helpers;
+using RevitServerViewer.Models.ServerContent;
 using RevitServerViewer.Services;
 using Splat;
 

@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using DynamicData;
 using IBS.IPC.DataTypes;
 using IBS.RevitServerTool;
+using RevitServerViewer.Models;
 
 namespace RevitServerViewer.Services;
 

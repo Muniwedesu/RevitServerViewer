@@ -1,5 +1,5 @@
 ﻿<reactiveUi:ReactiveUserControl x:TypeArguments="viewModels:RevitServerViewModel"
-                                x:Class="RevitServerViewer.RevitServerView"
+                                x:Class="RevitServerViewer.Views.RevitServerView"
                                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
