@@ -9,15 +9,16 @@ public class RevitFolder
 
 
     // public ICollection<RevitFileInfo> RevitFiles { get; set; } = new List<RevitFileInfo>();
-    public ICollection<RevitFolder> RevitFolders { get; set; } = new List<RevitFolder>();
-    public ICollection<RevitModelInfo> Models { get; set; } = new List<RevitModelInfo>();
+    public IList<RevitFolder> RevitFolders { get; set; } = new List<RevitFolder>();
+    public ICollection<RevitModelInfo> Models { get; set; } = Array.Empty<RevitModelInfo>();
     public LockState LockState { get; set; }
 
     [NetJSON.NetJSONProperty("Files")]
-    public ICollection<RevitFileInfo> FileInfos { get; set; } = new List<RevitFileInfo>();
+    public ICollection<RevitFileInfo> FileInfos { get; set; } = Array.Empty<RevitFileInfo>();
 
     [NetJSON.NetJSONProperty("Folders")]
-    public ICollection<RevitFolderInfo> FolderInfos { get; set; } = new List<RevitFolderInfo>();
+    public ICollection<RevitFolderInfo> FolderInfos { get; set; } = Array.Empty<RevitFolderInfo>();
 
     public string ServerPath => _p ??= "/|" + Path.Replace('\\', '|');
+    public static RevitFolder Empty { get; } = new();
 }

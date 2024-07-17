@@ -64,6 +64,7 @@
                     <local:StageIconConverter x:Key="StageIconConverter" />
                 </Border.Resources>
                 <ui:SymbolIcon Name="OperationStageBox" Filled="True"
+                               Style="{StaticResource StatusIcon}"
                                Symbol="{Binding Stage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StageIconConverter}}">
                 </ui:SymbolIcon>
             </Border>

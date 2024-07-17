@@ -24,11 +24,12 @@ public class BulkExportViewModel : ReactiveObject
 
     private readonly RevitServerService _rsSvc;
 
+    // TODO: may need to edit this too
     public string RsnPath(string version) => @"C:\ProgramData\Autodesk\Revit Server " + version + @"\Config\RSN.ini";
     public ReactiveCommand<Unit, Unit> SaveModelsCommand { get; set; }
     public SaveOptionsViewModel SaveOptions { get; } = new();
 
-    public RevitServerViewModel ServerViewModel { get; set; }
+    public RevitServerTreeView ServerTreeView { get; set; }
     public LoadingViewModel LoadingViewModel { get; set; } = new("Выбрать сервер");
 
     public ObservableCollection<string> ServerList { get; set; } = new();
@@ -40,11 +41,13 @@ public class BulkExportViewModel : ReactiveObject
     public BulkExportViewModel()
     {
         _log = Locator.Current.GetService<Serilog.ILogger>();
-        SavePath = File.Exists(".\\path") ? File.ReadAllText(".\\path") : SavePath = DefaultSavePath;
+        SavePath = File.Exists(".\\path")
+            ? ValidatePath(".\\path")
+            : DefaultSavePath;
         this.WhenAnyValue(x => x.SavePath)
             .Subscribe(x => { File.WriteAllText(".\\path", x); });
 
-        ServerViewModel = new RevitServerViewModel();
+        ServerTreeView = new RevitServerTreeView();
         _rsSvc = Locator.Current.GetService<RevitServerService>()!;
         var ipcSvc = Locator.Current.GetService<IpcService>()!;
         ProcessesViewModel = Locator.Current.GetService<ProcessesViewModel>()!;
@@ -57,7 +60,7 @@ public class BulkExportViewModel : ReactiveObject
             .Skip(1)
             .WhereNotNull()
             .ObserveOn(RxApp.MainThreadScheduler)
-            .BindTo(ServerViewModel, x => x.Version);
+            .BindTo(ServerTreeView, x => x.Version);
 
         this.WhenAnyValue(x => x.SelectedVersion)
             // .Skip(1)
@@ -90,16 +93,16 @@ public class BulkExportViewModel : ReactiveObject
         var isIdling = new ReplaySubject<bool>(1);
         this.WhenAnyValue(x => x.SelectedVersion)
             .Where(x => !string.IsNullOrEmpty(x))
-            .BindTo(this, model => model.ServerViewModel.Version);
+            .BindTo(this, model => model.ServerTreeView.Version);
         this.WhenAnyValue(x => x.SelectedServer)
             .Where(x => !string.IsNullOrEmpty(x))
-            .BindTo(this, model => model.ServerViewModel.SelectedServer);
+            .BindTo(this, model => model.ServerTreeView.SelectedServer);
 
         isIdling.OnNext(true);
-        this.ServerViewModel.Loading
+        this.ServerTreeView.Loading
             .Subscribe(x =>
             {
-                if (!x) DisplayedViewModel = ServerViewModel;
+                if (!x) DisplayedViewModel = ServerTreeView;
                 else
                 {
                     LoadingViewModel.StateText = $"Загружается {SelectedServer}";
@@ -120,6 +123,12 @@ public class BulkExportViewModel : ReactiveObject
         SelectedVersion = ServerVersions.FirstOrDefault(v => v == "2021")!;
     }
 
+    private string ValidatePath(string path)
+    {
+        var txt = File.ReadAllText(".\\path");
+        return !Directory.Exists(txt) ? DefaultSavePath : txt;
+    }
+
     // ReSharper disable once InconsistentNaming
     private async Task<IEnumerable<string>> RereadRSN(string ver, CancellationToken ct)
     {
@@ -136,8 +145,8 @@ public class BulkExportViewModel : ReactiveObject
     private void SaveModels()
     {
         _rsSvc.ClearDownloads();
-        var flat = (ServerViewModel.Folders.First() as FolderViewModel)!.Flatten();
-        var models = flat.OfType<ModelViewModel>()
+        var flat = (ServerTreeView.Folders.First() as FolderLabelViewModel)!.Flatten();
+        var models = flat.OfType<ModelLabelViewModel>()
             .Where(m => m.IsSelected)
             .ToArray();
 
@@ -145,12 +154,14 @@ public class BulkExportViewModel : ReactiveObject
 
         var opts = SaveOptions.GetTasks();
 
-        ProcessesViewModel.SaveModels(models, outputFolder, opts);
+        ProcessesViewModel.SaveModels(models, outputFolder, PreserveStructure, opts);
     }
+
 
     public Interaction<string, string> SavePathInteraction = new();
     private readonly ILogger? _log;
 
+    [Reactive] public bool PreserveStructure { get; set; } = false;
     [Reactive] public string SavePath { get; set; }
 
     public ReactiveCommand<Unit, Unit> SetPathCommand { get; }

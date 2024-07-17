@@ -38,13 +38,14 @@ public class ModelProcessViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> RetryCommand { get; set; }
     public Queue<ModelTaskViewModel> TaskQueue { get; } = new();
 
-    public ModelProcessViewModel(ModelViewModel sourceModel
+    public ModelProcessViewModel(ModelLabelViewModel sourceModelLabel
         , string outputFolder
+        , bool preserveStructure
         , ICollection<TaskType> opts
         , NavisworksExportSettings settings)
     {
         _log = Locator.Current.GetService<Serilog.ILogger>()!;
-        Name = sourceModel.FullName;
+        Name = sourceModelLabel.FullName;
         OutputFolder = outputFolder;
         // foreach (var o in opts) RemainingTaskTypes.Enqueue(o);
         ModelTaskViewModel last = null!;
@@ -52,7 +53,8 @@ public class ModelProcessViewModel : ReactiveObject
         {
             last = t switch
             {
-                TaskType.Download => new ModelDownloadTaskViewModel(Name, OutputFolder, sourceModel.ModifiedDate)
+                TaskType.Download => new ModelDownloadTaskViewModel(Name, OutputFolder, sourceModelLabel.ModifiedDate
+                    , preserveStructure)
                 , TaskType.Detach => new ModelDetachTaskViewModel(Name, last!.OutputFile, OutputFolder)
                 , TaskType.DiscardLinks => new ModelDiscardTaskViewModel(Name, last!.OutputFile, OutputFolder)
                 , TaskType.Cleanup => new ModelCleanupTaskViewModel(Name, last!.OutputFile, OutputFolder)
@@ -137,8 +139,10 @@ public class ModelProcessViewModel : ReactiveObject
 
     private bool ShouldSaveModel(ModelTaskViewModel? previous)
     {
+        //TODO: skip saving on detach too
+        //TODO: only save if there are no task remaining?
         return !FinishedTasks.Any(t => t is ModelSaveTaskViewModel)
-               && !FinishedTasks.All(t => t is ModelDownloadTaskViewModel)
+               && !FinishedTasks.All(t => t is ModelDownloadTaskViewModel or ModelDetachTaskViewModel)
                && previous?.Stage != OperationStage.Error;
     }
 

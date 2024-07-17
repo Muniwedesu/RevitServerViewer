@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
+﻿using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using DynamicData;
 using H.Pipes;
@@ -13,64 +10,22 @@ using Splat;
 
 namespace RevitServerViewer.Services;
 
-public class ObservableRevitProcess : IDisposable
-{
-    private Process _process;
-    private readonly IObservable<Unit> _obs;
-    private CompositeDisposable _dr = new();
-    private IObservable<Unit> _exitSwitch;
-    public int Id { get; }
-    public int SessionId { get; }
-    public bool Exited => _process?.HasExited ?? true;
-
-    public ObservableRevitProcess(string version)
-    {
-        // _exitSwitch = Observable.Interval(TimeSpan.FromMilliseconds(500))
-        //     .Select(x => _process?.HasExited ?? false)
-        //     .Buffer(2)
-        //     .Where(x => x[0] != x[1] && x[1])
-        //     .Select(_ => Unit.Default);
-        _process = new Process();
-        _dr.Add(_process);
-        _process.EnableRaisingEvents = true;
-        _process.StartInfo = new ProcessStartInfo($"C:\\Program Files\\Autodesk\\Revit {version}\\Revit.exe");
-        _obs = Observable.FromEventPattern<EventHandler, EventArgs>(
-                h => _process.Exited += h
-                , h => _process.Exited -= h)
-            .Select(_ => Unit.Default);
-        // .Merge(_exitSwitch);
-        _process.Start();
-        Id = _process.Id;
-        SessionId = _process.SessionId;
-        Application.Current.Exit += CurrentOnExit;
-    }
-
-    private void CurrentOnExit(object sender, ExitEventArgs e)
-    {
-        if (!_process.HasExited) _process.Kill();
-    }
-
-    public void Kill() => _process.Kill();
-
-    public IDisposable OnExit(Action handler)
-    {
-        return _obs.Subscribe(_ => { handler(); }).DisposeWith(_dr);
-    }
-
-    public void Dispose()
-    {
-        _dr.Dispose();
-    }
-}
 // TODO: handle app closing unexpectedly 
 
 public class RevitProxy : ReactiveObject
 {
     [Reactive] public bool Exited { get; set; } = true;
+    [Reactive] public bool IsIdle { get; set; }
     private PipeClient<SerializableMessage>? RvtPipe { get; set; }
-    public SourceList<ModelOperationRequest> ActiveTasks { get; } = new();
+
+    /// <summary>
+    /// Posts request as soon as it is added
+    /// S
+    /// <remarks>Order of execution is controlled from outside</remarks>
+    /// </summary>
+    public SourceList<ModelOperationRequest> RevitRequests { get; } = new();
+
     private readonly List<IDisposable> _pipeSubs = new();
-    [Reactive] public bool Finished { get; set; }
     private static int _runningAppCount;
     public string ModelKey { get; set; }
     private readonly object _lock = new();
@@ -82,46 +37,47 @@ public class RevitProxy : ReactiveObject
     public RevitProxy(string modelKey, string revitVersion)
     {
         _log = Locator.Current.GetService<Serilog.ILogger>();
-        //TODO: check available RAM, do not launch new instances until we have enough
-        //TODO: properly close apps that have fininished (and decide when task is considered finished)
-        //TODO: implement retrying 
+        //TODO: implement retrying when app crashed
         ModelKey = modelKey;
         _ipcSvc = Locator.Current.GetService<IpcService>()!;
         Observable.Interval(TimeSpan.FromMilliseconds(1000)).Subscribe(UpdateConnectionStatus);
-        ActiveTasks.Connect()
-            .OnItemAdded(x =>
-            {
-                Observable.FromAsync(async () =>
-                    {
-                        if (_revit?.Exited ?? true) await CreateRevitProcess(revitVersion);
-                    })
-                    .Subscribe((_) =>
-                    {
-                        lock (_lock)
-                        {
-                            Observable.FromAsync(async () =>
-                                    await RvtPipe!.WriteAsync(SerializableMessage.Create(x, x.GetType())))
-                                .Subscribe(_ =>
-                                {
-                                    _log?.Information("Request " + x.ModelKey + " " + x.GetType().Name + " sent");
-                                });
-                        }
-                    });
-            })
-            .Subscribe(x => { _log?.Information(x.ToString() ?? string.Empty); });
 
-        var pipes = PipeWatcher.GetActivePipes();
+        RevitRequests.Connect()
+            .OnItemAdded(x =>
+                Observable.FromAsync(async () =>
+                        await (
+                            _revit?.Exited ?? true
+                                ? CreateRevitProcess(revitVersion)
+                                : Task.FromResult(_revit))
+                    )
+                    .Subscribe(_ => SendMessage(x)))
+            .Subscribe(x => { _log?.Information("{@Current}", x.FirstOrDefault()?.Item.Current); });
     }
 
-    private async Task CreateRevitProcess(string versionString)
+    private void SendMessage(ModelOperationRequest x)
+    {
+        lock (_lock)
+        {
+            Observable.FromAsync(async () =>
+                    await RvtPipe!.WriteAsync(SerializableMessage.Create(x, x.GetType())))
+                .Subscribe(_ => { _log?.Information("Request {@X} sent", x); });
+        }
+    }
+
+    private async Task<ObservableRevitProcess> CreateRevitProcess(string versionString)
     {
         while (_runningAppCount >= _ipcSvc.MaxAppCount) await Task.Delay(1000);
         ++_runningAppCount;
         lock (_lock)
         {
             _revit = new ObservableRevitProcess(versionString);
+            _log?.Information("Process {Id} started", _revit.Id);
+// #if DEBUG
+//             Process.Start("vsjitdebugger.exe", $"-p {_revit.Id}");
+// #endif
             Exited = false;
-            _revit.OnExit(OnProcessExited);
+            _revit.OnExit(() => OnProcessExited(_revit.Id));
+            // created here because process may exit or smth
             RvtPipe = new PipeClient<SerializableMessage>(PipeNames.RevitServerModelDownloader
                                                           + $"_{_revit.Id}_{_revit.SessionId}");
             RvtPipe.AutoReconnect = true;
@@ -131,9 +87,25 @@ public class RevitProxy : ReactiveObject
                 .Subscribe(a => _log?.Information(a.EventArgs.Connection.PipeName + " connected")));
             _pipeSubs.Add(RvtPipe.OnMessage().Subscribe(ProcessMessage));
         }
+
+        return _revit;
     }
 
-    private void OnProcessExited() => _runningAppCount--;
+    private void OnProcessExited(int pId)
+    {
+        _log?.Information("Process {PId} exited", pId);
+        _runningAppCount--;
+        //TODO: determine if we have any running tasks
+        if (!IsIdle)
+        {
+            var last = RevitRequests.Items.Last();
+            OnStatusMessage(
+                new ModelOperationStatusMessage(last.ModelKey, last.SrcFile, last.Kind, OperationStage.Requested)
+                    .Error("Revit закрылся"));
+        }
+        //if we do - restart 
+        // if (RevitRequests.Count > 0)
+    }
 
     private void UpdateConnectionStatus(long _)
     {
@@ -151,6 +123,25 @@ public class RevitProxy : ReactiveObject
         catch { }
     }
 
+    private void OnStatusMessage(ModelOperationStatusMessage statusMessage)
+    {
+        _log?.Information("Task status: "
+                          + statusMessage.OperationType + " "
+                          + statusMessage.OperationStage);
+        if (statusMessage.OperationStage is OperationStage.Completed or OperationStage.Error)
+        {
+            _currentTaskObserver!.OnNext(statusMessage);
+            _currentTaskObserver!.OnCompleted();
+            RevitRequests.RemoveAt(0);
+            IsIdle = true;
+            if (statusMessage.OperationType is OperationType.Save) _revit?.Kill();
+        }
+        else
+        {
+            _currentTaskObserver!.OnNext(statusMessage);
+        }
+    }
+
     private void ProcessMessage(ConnectionMessageEventArgs<SerializableMessage> msg)
     {
         try
@@ -158,23 +149,7 @@ public class RevitProxy : ReactiveObject
             var message = System.Text.Json.JsonSerializer
                 .Deserialize(msg.Message.SerializedString, Type.GetType(msg.Message.TypeName)!);
 
-            if (message is ModelOperationStatusMessage statusMessage)
-            {
-                _log?.Information("IPCSvcs status: "
-                                  + statusMessage.OperationType + " "
-                                  + statusMessage.OperationStage);
-                if (statusMessage.OperationStage is OperationStage.Completed or OperationStage.Error)
-                {
-                    _currentTaskObserver!.OnNext(statusMessage);
-                    _currentTaskObserver!.OnCompleted();
-                    Finished = true;
-                    if (statusMessage.OperationType is OperationType.Save) _revit?.Kill();
-                }
-                else
-                {
-                    _currentTaskObserver!.OnNext(statusMessage);
-                }
-            }
+            if (message is ModelOperationStatusMessage statusMessage) OnStatusMessage(statusMessage);
         }
         catch (Exception e)
         {
@@ -182,12 +157,17 @@ public class RevitProxy : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// Createas an Observable which posts execution stages
+    /// </summary>
+    /// <param name="request">Information about the task</param>
+    /// <returns></returns>
     public IObservable<ModelOperationStatusMessage> Enqueue(ModelOperationRequest request)
     {
-        Finished = false;
         var stageObservable = new Subject<ModelOperationStatusMessage>();
         _currentTaskObserver = stageObservable;
-        ActiveTasks.Add(request);
+        RevitRequests.Add(request);
+        IsIdle = false;
         return stageObservable;
     }
 }

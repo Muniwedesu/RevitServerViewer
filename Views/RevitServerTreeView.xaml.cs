@@ -1,8 +1,8 @@
 ﻿namespace RevitServerViewer.Views;
 
-public partial class RevitServerView
+public partial class RevitServerTreeView
 {
-    public RevitServerView()
+    public RevitServerTreeView()
     {
         InitializeComponent();
         this.WhenActivated(dr =>

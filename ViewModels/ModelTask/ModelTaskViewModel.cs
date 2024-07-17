@@ -11,6 +11,7 @@ namespace RevitServerViewer.ViewModels;
 public abstract class ModelTaskViewModel : ReactiveObject
 {
     private Serilog.ILogger? _log;
+    private static readonly string? _defaultStageDescription = "Ожидание ответа";
 
     /// <summary>
     /// path to the model on RS
@@ -48,7 +49,7 @@ public abstract class ModelTaskViewModel : ReactiveObject
     public string OutputFile { get; set; }
 
     public OperationType OperationType { get; protected set; } = OperationType.Download;
-    [Reactive] public string? StageDescription { get; set; }
+    [Reactive] public string? StageDescription { get; set; } = _defaultStageDescription;
     [Reactive] public OperationStage Stage { get; set; }
     [Reactive] public TimeSpan Elapsed { get; set; } = TimeSpan.Zero;
     public ObservableTimer TaskTimer { get; set; } = new(TimeSpan.FromMilliseconds(1000));
@@ -86,6 +87,7 @@ public abstract class ModelTaskViewModel : ReactiveObject
 
     {
         IsDone = st is OperationStage.Error or OperationStage.Completed;
+        if (IsDone && StageDescription == _defaultStageDescription) StageDescription = "Завершено";
         IsExecuting = st == OperationStage.Started;
         _log?.Information(this.ModelKey
                           + " " + Enum.GetName(typeof(OperationType), OperationType)
@@ -126,6 +128,7 @@ public abstract class ModelTaskViewModel : ReactiveObject
     {
         IsExecuting = default;
         IsDone = default;
+        this.StageDescription = default;
         this.Stage = default;
         TaskTimer.Reset();
     }

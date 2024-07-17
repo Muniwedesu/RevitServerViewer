@@ -16,7 +16,8 @@ public class ProcessesViewModel : ReactiveObject
         Locator.Current.GetService<RevitServerService>();
     }
 
-    public void SaveModels(IEnumerable<ModelViewModel> models, string outputPath, ICollection<TaskType> tasks)
+    public void SaveModels(IEnumerable<ModelLabelViewModel> models, string outputPath, bool preserveStructure
+        , ICollection<TaskType> tasks)
     {
         _settings.NavisworksSettings
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -27,7 +28,7 @@ public class ProcessesViewModel : ReactiveObject
                     var completed = Downloads.Where(x => !x.TaskQueue.Any()).ToArray();
                     foreach (var c in completed)
                         Downloads.Remove(c);
-                    var op = new ModelProcessViewModel(model, outputPath, tasks, s);
+                    var op = new ModelProcessViewModel(model, outputPath, preserveStructure, tasks, s);
                     if (Downloads.FirstOrDefault(d => d.Name == op.Name) is { } mp)
                     {
                         Downloads.Remove(mp);

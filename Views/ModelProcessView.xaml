@@ -79,9 +79,20 @@
             <TextBlock Style="{StaticResource TextStyle}" Grid.Column="0" Name="ElapsedBox">00:00:00</TextBlock>
         </Border>
         <Border Grid.Column="4" BorderBrush="Green" BorderThickness="0">
-            <Button Grid.Column="0" Name="RetryButton">
-                <ui:SymbolIcon Symbol="ArrowCounterclockwise24" Filled="True"></ui:SymbolIcon>
-            </Button>
+            <ui:Button Margin="2" Grid.Column="0" Name="RetryButton">
+                <Button.Style>
+                    <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+
+                                <Setter Property="Opacity" Value="0.5"></Setter>
+
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <ui:SymbolIcon Symbol="ArrowClockwise24" Filled="True" />
+            </ui:Button>
         </Border>
     </Grid>
 </reactiveUi:ReactiveUserControl>

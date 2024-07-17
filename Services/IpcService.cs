@@ -20,7 +20,7 @@ public class IpcService : ReactiveObject
     public IpcService()
     {
         //TODO: free resources (close all active processes)
-        Clients.Connect().AutoRefresh(x => x.Finished).Subscribe(x =>
+        Clients.Connect().AutoRefresh(x => x.IsIdle).Subscribe(x =>
         {
             var xx = x;
 
@@ -28,7 +28,7 @@ public class IpcService : ReactiveObject
                 .Subscribe(_ =>
                 {
                     //if is idling
-                    if (true) Clients.RemoveKey("");
+                    // if (true) Clients.RemoveKey("");
                     //TODO: and shutdown? idk, need to make sure if it has finished its job
                 });
             sub.Dispose();
@@ -42,16 +42,17 @@ public class IpcService : ReactiveObject
         //check if we have space first
         //^ then start a new process
         //TODO: delete process when revit has exited
-        IObservable<ModelOperationStatusMessage> obs = null!;
+        IObservable<ModelOperationStatusMessage> revitTaskStatus = null!;
         Clients.Lookup(request.ModelKey)
-            .IfHasValue(x => obs = x.Enqueue(request))
+            .IfHasValue(x => revitTaskStatus = x.Enqueue(request))
             .Else(() =>
             {
                 var x = new RevitProxy(request.ModelKey, RevitVersionString);
                 Clients.AddOrUpdate(x);
-                obs = x.Enqueue(request);
+                revitTaskStatus = x.Enqueue(request);
             });
-
-        return obs;
+        return revitTaskStatus;
+        //.Merge(Clients.Lookup(request.ModelKey).Value.WhenAnyValue(x => x.Exited).Select(_ =>
+        //new ModelOperationStatusMessage(request.ModelKey, "", OperationType.Detach, OperationStage.Error)));
     }
 }

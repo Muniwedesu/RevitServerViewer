@@ -60,8 +60,8 @@ public class SaveSettingsViewModel : ReactiveObject //, IRoutableViewModel
 
     public NavisworksParametersViewModel[] ParametersList { get; set; } =
     {
-        new("None", NavisworksExportSettings.NavisworksParameters.None)
-        , new("Elements", NavisworksExportSettings.NavisworksParameters.Elements)
+        new("Не выгружать", NavisworksExportSettings.NavisworksParameters.None)
+        , new("Параметры элементов", NavisworksExportSettings.NavisworksParameters.Elements)
         , NavisworksParametersViewModel.Default
     };
 

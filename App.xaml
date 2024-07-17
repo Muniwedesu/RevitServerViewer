@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:RevitServerViewer"
-             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" 
+             xmlns:dataTypes="clr-namespace:IBS.IPC.DataTypes;assembly=IBS.IPC"
              StartupUri="/Views/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
@@ -12,6 +13,35 @@
                 <!-- <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/dark.xaml"></ResourceDictionary> -->
             </ResourceDictionary.MergedDictionaries>
             <Thickness x:Key="ViewMargin">8,4</Thickness>
+            <Style TargetType="ui:SymbolIcon" x:Key="StatusIcon">
+                <Style.Triggers>
+                    <!-- <DataTrigger -->
+                    <!--     Binding="{Binding Stage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" -->
+                    <!--     Value="{x:Static dataTypes:OperationStage.Requested}"> -->
+                    <!-- </DataTrigger> -->
+                    <DataTrigger
+                        Binding="{Binding Stage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                        Value="{x:Static dataTypes:OperationStage.Started}">
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource InfoBadgeAttentionSeverityBackgroundBrush}">
+                        </Setter>
+                    </DataTrigger>
+                    <DataTrigger
+                        Binding="{Binding Stage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                        Value="{x:Static dataTypes:OperationStage.Completed}">
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource InfoBadgeSuccessSeverityBackgroundBrush}">
+                        </Setter>
+                    </DataTrigger>
+                    <DataTrigger
+                        Binding="{Binding Stage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                        Value="{x:Static dataTypes:OperationStage.Error}">
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource InfoBadgeCriticalSeverityBackgroundBrush}">
+                        </Setter>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

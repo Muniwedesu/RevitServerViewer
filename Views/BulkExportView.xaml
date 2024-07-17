@@ -54,14 +54,14 @@
                 Name="ViewHost" />
             <StackPanel Grid.Column="0" Margin="{StaticResource ViewMargin}">
                 <!-- <TextBlock Name="ConnectionBox"></TextBlock> -->
-                <ComboBox Name="VersionBox">
+                <ComboBox ToolTip="Версия сервера" Name="VersionBox">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding .}"></TextBlock>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <ComboBox Name="ServerBox" Margin="0,4">
+                <ComboBox ToolTip="Адрес сервера" Name="ServerBox" Margin="0,4">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding .}"></TextBlock>
@@ -73,16 +73,55 @@
                             ClearButtonEnabled="False"
                             PlaceholderText="Путь для сохранения" IconPlacement="Right"
                             Margin="0,4">
+                    <ui:TextBox.ToolTip>
+                        <ToolTip IsOpen="False" MaxWidth="600">
+                            <ToolTip.Resources>
+                                <Style x:Key="PathRun" TargetType="Run">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                    <Setter Property="FontFamily" Value="Courier New" />
+                                </Style>
+                            </ToolTip.Resources>
+                            <StackPanel>
+                                <TextBlock>Путь для сохранения</TextBlock>
+                                <TextBlock TextWrapping="Wrap">Модель будет сохранена в указанную папку с сохранением структуры на сервере.</TextBlock>
+                                <TextBlock LineHeight="1.5" TextWrapping="Wrap">
+                                    Например, для сервера
+                                    <Run Style="{StaticResource PathRun}" Text="192.168.0.1" />,
+                                    <LineBreak />
+                                    папки назначения
+                                    <Run Style="{StaticResource PathRun}" Text="C:\Users\" />
+                                    <LineBreak />
+                                    и модели
+                                    <Run Style="{StaticResource PathRun}" Text="RS://192.168.0.1/Project/Model.rvt" />
+                                    <LineBreak />
+                                    Модель будет сохранена в
+                                    <LineBreak />
+                                    <Run Style="{StaticResource PathRun}" Text="C:\Users\192.168.0.1\Project\Model.rvt" />
+                                    <LineBreak />
+                                    А экспортированный .nwc будет сохранен в
+                                    <LineBreak />
+                                    <Run Style="{StaticResource PathRun}" Text="C:\Users\192.168.0.1\Model.nwc" />
+                                </TextBlock>
+                            </StackPanel>
+                        </ToolTip>
+                    </ui:TextBox.ToolTip>
                     <ui:TextBox.Icon>
-                        <ui:SymbolIcon
-                            MouseUp="PathTextBoxMouseUp"
-                            Symbol="Folder24">
+                        <ui:SymbolIcon Height="30" Margin="0,0,-11,0" Width="33"
+                                       ForceCursor="True" Filled="True"
+                                       MouseDown="PathTextBoxClick"
+                                       Symbol="Folder24">
                             <ui:SymbolIcon.Style>
                                 <Style TargetType="ui:SymbolIcon">
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Foreground"
-                                                    Value="{DynamicResource TextOnAccentFillColorPrimaryBrush }">
+                                            <Setter Property="Opacity"
+                                                    Value="1.0">
+                                            </Setter>
+                                            <Setter Property="Cursor" Value="Hand"></Setter>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="False">
+                                            <Setter Property="Opacity"
+                                                    Value="0.4">
                                             </Setter>
                                         </Trigger>
                                     </Style.Triggers>
@@ -91,7 +130,13 @@
                         </ui:SymbolIcon>
                     </ui:TextBox.Icon>
                 </ui:TextBox>
-                <ui:TextBox PlaceholderEnabled="True" PlaceholderText="Количество приложений" Name="MaxAppCountBox"></ui:TextBox>
+                <ui:TextBox ToolTip="Количество запускаемых ревитов" PlaceholderEnabled="True"
+                            PlaceholderText="Количество приложений" Name="MaxAppCountBox">
+                </ui:TextBox>
+                <CheckBox Name="PreserveStructureBox">
+                    <ui:TextBlock>Сохранять структуру папок с сервера</ui:TextBlock>
+                </CheckBox>
+
             </StackPanel>
         </Grid>
         <GridSplitter
@@ -110,7 +155,7 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <reactiveUi:ViewModelViewHost Name="SaveOptionsHost"></reactiveUi:ViewModelViewHost>
-            <Button Grid.Column="1" Name="SaveButton">
+            <Button Margin="2" Grid.Column="1" Name="SaveButton">
                 <ui:SymbolIcon Symbol="ArrowDownload24"></ui:SymbolIcon>
             </Button>
         </Grid>

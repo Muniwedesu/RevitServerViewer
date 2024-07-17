@@ -70,7 +70,7 @@ public class RevitServerConnection
         }
         catch
         {
-            return new RevitFolder();
+            return RevitFolder.Empty;
         }
     }
 
