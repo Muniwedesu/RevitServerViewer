@@ -8,16 +8,28 @@
                                 xmlns:reactiveUi="http://reactiveui.net"
                                 xmlns:viewModels="clr-namespace:RevitServerViewer.ViewModels"
                                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                                xmlns:dataTypes="clr-namespace:IBS.IPC.DataTypes;assembly=IBS.IPC"
                                 mc:Ignorable="d"
                                 d:DesignHeight="50" d:DesignWidth="Auto">
 
     <UserControl.Resources>
-        <DataTemplateSelector x:Key="Selector">
-        </DataTemplateSelector>
-        <Style x:Key="TextStyle" TargetType="TextBlock">
-            <Setter Property="Margin" Value="2"></Setter>
-            <Setter Property="VerticalAlignment" Value="Center"></Setter>
-        </Style>
+        <ResourceDictionary>
+
+            <!-- <ResourceDictionary.MergedDictionaries> -->
+            <!--     <ui:ControlsDictionary></ui:ControlsDictionary> -->
+            <!--     <ui:ThemesDictionary Theme="Dark"></ui:ThemesDictionary> -->
+            <!--     ~1~ <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/dark.xaml"></ResourceDictionary> @1@ -->
+            <!--     <ResourceDictionary Source="pack://application:,,,/Wpf.Ui;component/Resources/Theme/dark.xaml"></ResourceDictionary> -->
+            <!-- </ResourceDictionary.MergedDictionaries> -->
+
+            <Style x:Key="TextStyle" TargetType="TextBlock">
+                <Setter Property="Margin" Value="2"></Setter>
+                <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            </Style>
+        </ResourceDictionary>
+
+        <!-- <ui:ControlsDictionary></ui:ControlsDictionary> -->
+        <!-- <ui:ThemesDictionary Theme="Dark"></ui:ThemesDictionary> -->
         <!-- <local:ListWidthConverter x:Key="WidthConverter" /> -->
     </UserControl.Resources>
     <Border BorderBrush="Aqua" BorderThickness="0">
@@ -30,7 +42,9 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Border Grid.Column="0" BorderBrush="Black" BorderThickness="0" HorizontalAlignment="Left">
-                <TextBlock FontFamily="Courier New" Style="{StaticResource TextStyle}" Grid.Column="3"
+                <TextBlock FontSize="13" Padding="0,3,0,0" FontFamily="Courier New"
+                           Style="{StaticResource TextStyle}"
+                           Grid.Column="3"
                            Name="OperationMessageBox">
                     Exception occured somewhere idk
                 </TextBlock>
@@ -42,8 +56,11 @@
                 <Border.Resources>
                     <local:StageIconConverter x:Key="StageIconConverter" />
                 </Border.Resources>
+
                 <ui:SymbolIcon Name="OperationStageBox" Filled="True"
-                               Symbol="{Binding Stage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StageIconConverter}}">
+                               Symbol="{Binding Stage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged
+                               , Converter={StaticResource StageIconConverter}}"
+                               Style="{StaticResource StatusIcon}">
                 </ui:SymbolIcon>
             </Border>
 

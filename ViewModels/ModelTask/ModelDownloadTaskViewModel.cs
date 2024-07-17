@@ -20,10 +20,12 @@ public class ModelDownloadTaskViewModel : ModelTaskViewModel
     /// <param name="sourceFile"><inheritdoc cref="ModelTaskViewModel(string,string,string)"  path="/param[@name='sourceFile']"/></param>
     /// <param name="outputFolder"><inheritdoc cref="ModelTaskViewModel(string,string,string)"  path="/param[@name='outputFolder']"/></param>
     /// <param name="modifiedDate">Last time the RS rvt file was changed</param>
-    public ModelDownloadTaskViewModel(string sourceFile, string outputFolder, DateTime modifiedDate)
+    /// <param name="preserveStructure"></param>
+    public ModelDownloadTaskViewModel(string sourceFile, string outputFolder, DateTime modifiedDate
+        , bool preserveStructure)
         : base(key: sourceFile, sourceFile: sourceFile, outputFolder: outputFolder)
     {
-        var paths = PathUtils.GetValidPaths(sourceFile, outputFolder);
+        var paths = PathUtils.GetValidPaths(sourceFile, outputFolder, preserveStructure);
         if (paths.Source != sourceFile) SourceFile = paths.Source;
         OutputFile = paths.Destination;
         OperationType = OperationType.Download;
@@ -40,9 +42,10 @@ public class ModelDownloadTaskViewModel : ModelTaskViewModel
         {
             //TODO: check dates or something (or move this to the downloader)
             var fi = new FileInfo(OutputFile);
-            if (fi.LastWriteTimeUtc > ModifiedDate)
+            if (fi.CreationTimeUtc > ModifiedDate)
             {
                 this.Stage = OperationStage.Completed;
+                this.StageDescription = ".rvt актуален";
                 return true;
             }
         }

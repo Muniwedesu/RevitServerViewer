@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -29,7 +30,7 @@ public partial class BulkExportView
             ViewModel.SavePathInteraction.RegisterHandler(SetSavePathHandler);
             dr(this.OneWayBind(ViewModel, vm => vm.ServerList, v => v.ServerBox.ItemsSource));
             dr(this.Bind(ViewModel, vm => vm.SelectedServer, v => v.ServerBox.SelectedItem));
-
+            dr(this.Bind(ViewModel, vm => vm.PreserveStructure, v => v.PreserveStructureBox.IsChecked));
             dr(this.BindCommand(ViewModel, vm => vm.SaveModelsCommand, v => v.SaveButton));
             dr(this.Bind(ViewModel, vm => vm.DisplayedViewModel, v => v.ViewHost.ViewModel));
             // dr(this.Bind(ViewModel, vm => vm.ConnectionString, v => v.ConnectionBox.Text));
@@ -49,7 +50,7 @@ public partial class BulkExportView
     {
         var dlg = new FolderPicker
         {
-            InputPath = interaction.Input
+            InputPath = CheckAndCreatePath(interaction.Input)
             , ForceFileSystem = false
             , Multiselect = false
             , Title = "Выбор папки для сохранения"
@@ -63,7 +64,20 @@ public partial class BulkExportView
         else interaction.SetOutput(interaction.Input);
     }
 
-    private void PathTextBoxMouseUp(object sender, MouseButtonEventArgs e)
+    private string CheckAndCreatePath(string path)
+    {
+        if (System.IO.Path.IsPathFullyQualified(path))
+        {
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return path;
+        }
+        else
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        }
+    }
+
+    private void PathTextBoxClick(object sender, MouseButtonEventArgs e)
     {
         ViewModel.SetPathCommand.Execute().Subscribe();
     }

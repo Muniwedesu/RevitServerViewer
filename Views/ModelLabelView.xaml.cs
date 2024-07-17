@@ -1,8 +1,8 @@
 ﻿namespace RevitServerViewer.Views;
 
-public partial class ModelView
+public partial class ModelLabelView
 {
-    public ModelView()
+    public ModelLabelView()
     {
         InitializeComponent();
         this.WhenActivated(dr =>

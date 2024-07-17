@@ -10,7 +10,7 @@ using ILogger = Serilog.ILogger;
 
 namespace RevitServerViewer.ViewModels;
 
-public class RevitServerViewModel : ReactiveObject
+public class RevitServerTreeView : ReactiveObject
 {
     private IDisposable? _sub;
     public ObservableCollection<TreeItem> Folders { get; set; } = new();
@@ -20,7 +20,7 @@ public class RevitServerViewModel : ReactiveObject
     private readonly ILogger? _log;
     public IObservable<bool> Loading => _loading;
 
-    public RevitServerViewModel()
+    public RevitServerTreeView()
     {
         _log = Locator.Current.GetService<Serilog.ILogger>();
         this.WhenAnyValue(x => x.SelectedServer)
@@ -36,7 +36,7 @@ public class RevitServerViewModel : ReactiveObject
                     .Subscribe(r =>
                         {
                             _loading.OnNext(false);
-                            Folders.Add(new FolderViewModel(r, SelectedServer));
+                            Folders.Add(new FolderLabelViewModel(r, SelectedServer));
                             _log?.Information($"Loaded structure for {SelectedServer}");
                         },
                         exception =>

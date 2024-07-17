@@ -2,9 +2,9 @@
 
 namespace RevitServerViewer.ViewModels;
 
-public class ModelViewModel : TreeItem
+public class ModelLabelViewModel : TreeItem
 {
-    public ModelViewModel(RevitModelInfo revitModelInfo)
+    public ModelLabelViewModel(RevitModelInfo revitModelInfo)
     {
         FullName = revitModelInfo.FullName;
         ModifiedDate = revitModelInfo.ModifiedDate;

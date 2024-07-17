@@ -23,6 +23,7 @@ public class TreeItem : ReactiveObject
             .Subscribe(x =>
             {
                 if (Children.All(ch => ch.IsSelected)) this.IsSelected = true;
+                if (Children.All(ch => !ch.IsSelected)) this.IsSelected = false;
             });
     }
 

@@ -10,6 +10,11 @@
         <Platforms>x64</Platforms>
         <AssemblyVersion>1.1.0</AssemblyVersion>
         <FileVersion>1.1.0</FileVersion>
+        <ApplicationIcon>Resources\revit.ico</ApplicationIcon>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<!--<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>-->
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,20 +22,22 @@
         <PackageReference Include="H.Formatters.BinaryFormatter" Version="2.1.0-dev.322"/>
         <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0"/>
         <PackageReference Include="NetJSON" Version="1.4.4"/>
-        <PackageReference Include="ReactiveUI" Version="19.5.72"/>
+        <PackageReference Include="ReactiveUI" Version="20.1.1"/>
         <PackageReference Include="ReactiveUI.Fody" Version="19.5.41"/>
-        <PackageReference Include="ReactiveUI.WPF" Version="19.5.72"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="5.1.0-dev-00943" />
-        <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00972" />
-        <PackageReference Include="WPF-UI" Version="3.0.4" />
+        <PackageReference Include="ReactiveUI.WPF" Version="20.1.1"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+        <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
+        <PackageReference Include="System.Text.Encoding" Version="4.3.0"/>
+        <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0"/>
+        <PackageReference Include="WPF-UI" Version="3.0.4"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\PipesTutorial\IBS.IPC\IBS.IPC.csproj"/>
-        <ProjectReference Include="..\..\RevitServerTool\RevitServerTool.csproj"/>
-        <ProjectReference Include="..\IBS.Shared\IBS.Shared.csproj" />
+        <ProjectReference Include="..\..\..\IBS.IPC\IBS.IPC.csproj"/>
+        <ProjectReference Include="..\IBS.Shared\IBS.Shared.csproj"/>
         <ProjectReference Include="..\Multimedia-Timer\MultimediaTimer\MultimediaTimer.csproj"/>
+        <ProjectReference Include="..\RevitServerTool\RevitServerTool.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -47,7 +54,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Page Update="Views\FolderView.xaml">
+        <Page Update="Views\FolderLabelView.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
@@ -62,7 +69,7 @@
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
         </Page>
-        <Page Update="Views\ModelView.xaml">
+        <Page Update="Views\ModelLabelView.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
@@ -72,13 +79,25 @@
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
         </Page>
-        <Page Update="Views\RevitServerView.xaml">
+        <Page Update="Views\RevitServerTreeView.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
         </Page>
     </ItemGroup>
+    <ItemGroup>
+        <FluentValidationExcludedCultures Include="be;cs;cs-CZ;da;de;es;fa;fi;fr;ja;it;ko;mk;nl;pl;pt;ru;sv;tr;uk;zh-CN;zh-CHS;zh-CHT;zh-Hans;zh-Hant;pt-BR">
+            <InProject>false</InProject>
+        </FluentValidationExcludedCultures>
+    </ItemGroup>
+    <ItemGroup>
+        <None Remove="Resources\revit.ico"/>
+        <Resource Include="Resources\revit.ico"/>
+    </ItemGroup>
 
+    <Target Name="RemoveTranslationsAfterBuild" AfterTargets="AfterBuild">
+        <RemoveDir Directories="@(FluentValidationExcludedCultures->'$(OutputPath)%(Filename)')"/>
+    </Target>
     <!--    <ItemGroup>-->
     <!--      <ApplicationDefinition Include="App.xaml">-->
     <!--        <Generator>MSBuild:Compile</Generator>-->

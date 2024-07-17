@@ -28,7 +28,8 @@
 
         <ui:TitleBar />
         <ui:NavigationView Loaded="FrameworkElement_OnLoaded" Padding="4,8" Background="Transparent"
-                           PaneDisplayMode="LeftFluent" Grid.Row="1">
+                           PaneDisplayMode="LeftMinimal" IsPaneOpen="False" IsBackButtonVisible="Collapsed"
+                           Grid.Row="1">
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem TargetPageTag="Export" Content="Экспорт"
                                        TargetPageType="{x:Type views:BulkExportView}">

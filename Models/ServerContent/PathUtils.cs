@@ -1,7 +1,7 @@
 ﻿using System.IO;
 
 namespace RevitServerViewer.Models.ServerContent;
-
+// Autodesk's codebase
 public static class PathUtils
 {
     public static string SetRvtExtension(string fileNameWithExtension)
@@ -37,30 +37,32 @@ public static class PathUtils
         }
     }
 
-    public static (string Source, string Destination) GetValidPaths(string modelPath, string destination)
+    public static (string Source, string Destination) GetValidPaths(string modelPath, string destination
+        , bool preserveStructure)
     {
         var fileName = SetRvtExtension(Path.GetFileName(modelPath));
         var src = Path.Combine(Path.GetDirectoryName(modelPath.Replace('/', '\\'))!, fileName);
-
+        var sourceFolderStructure
+            = preserveStructure ? Path.GetDirectoryName($@"{modelPath.Replace('/', '\\')}")! : @"RVT";
         if (string.IsNullOrEmpty(destination))
         {
             destination = Path.Combine(PersonalFolder()
-                , Path.GetDirectoryName($@"{modelPath.Replace('/', '\\')}")!
+                , sourceFolderStructure
                 , fileName);
         }
         else
         {
-            var path1 = Path.GetDirectoryName(destination);
+            var destinationDirectory = Path.GetDirectoryName(destination);
             var fileNameWithExtension = Path.GetFileName(destination);
             fileNameWithExtension = string.IsNullOrEmpty(fileNameWithExtension)
                 ? fileName
                 : SetRvtExtension(fileNameWithExtension);
-            if (string.IsNullOrEmpty(path1))
-                path1 = !destination.Equals(Path.GetPathRoot(destination))
+            if (string.IsNullOrEmpty(destinationDirectory))
+                destinationDirectory = !destination.Equals(Path.GetPathRoot(destination))
                     ? PersonalFolder()
                     : destination;
-            destination = Path.Combine(path1
-                , Path.GetDirectoryName(modelPath.Replace('/', '\\'))!
+            destination = Path.Combine(destinationDirectory
+                , sourceFolderStructure
                 , fileNameWithExtension);
         }
 
