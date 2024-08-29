@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Windows.Threading;
 using IBS.RevitServerTool;
@@ -46,8 +47,15 @@ public partial class App : Application
                 if (!RevitLocations.ContainsKey(key)) RevitLocations.Add(key, string.Empty);
                 if (!string.IsNullOrEmpty(rvtPath))
                 {
+                    if (!(Directory.Exists(rvtPath) &&
+                          File.Exists(Path.Join(rvtPath, "Revit.exe"))))
+                    {
+                        _log.Information("Found {2} for {1}, but path is empty ({0})", rvtPath, ver, fullKeyPath);
+                        continue;
+                    }
+
                     RevitLocations[key] = rvtPath;
-                    _log.Information("set {1} revit path to {0}", rvtPath, ver);
+                    _log.Information("Found {2} setting {1} revit path to {0}", rvtPath, ver, fullKeyPath);
                     break;
                 }
 
@@ -92,9 +100,11 @@ public partial class App : Application
         //         ))
         //     .OrderBy(x => x)
         //     .ToArray();
+        // Environment.FailFast("123");
         _log.Information("Started");
         Current.DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
+        AppDomain.CurrentDomain.FirstChanceException += CurrentDomainOnUnhandledException;
         TaskScheduler.UnobservedTaskException += TaskSchedulerOnUnobservedTaskException;
         Application.Current.Exit += (sender, args) => { _log.Information("Shutting down"); };
     }
@@ -105,6 +115,12 @@ public partial class App : Application
     {
         // _log.Warning("Task exception");
         _log.Error(e.Exception, nameof(TaskSchedulerOnUnobservedTaskException));
+    }
+
+    private void CurrentDomainOnUnhandledException(object? sender, FirstChanceExceptionEventArgs e)
+    {
+        // _log.Warning("Domain exception");
+        _log.Error((Exception)(e.Exception), nameof(CurrentDomainOnUnhandledException));
     }
 
     private void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs e)

@@ -10,7 +10,7 @@ using ILogger = Serilog.ILogger;
 
 namespace RevitServerViewer.ViewModels;
 
-public class RevitServerTreeView : ReactiveObject
+public class RevitServerTreeViewModel : ReactiveObject
 {
     private IDisposable? _sub;
     public ObservableCollection<TreeItem> Folders { get; set; } = new();
@@ -20,11 +20,12 @@ public class RevitServerTreeView : ReactiveObject
     private readonly ILogger? _log;
     public IObservable<bool> Loading => _loading;
 
-    public RevitServerTreeView()
+    public RevitServerTreeViewModel()
     {
         _log = Locator.Current.GetService<Serilog.ILogger>();
         this.WhenAnyValue(x => x.SelectedServer)
             .Where(s => !string.IsNullOrEmpty(s))
+            .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(server =>
             {
                 _sub?.Dispose();

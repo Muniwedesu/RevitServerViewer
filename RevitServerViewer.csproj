@@ -8,8 +8,8 @@
         <UseWPF>true</UseWPF>
         <Configurations>Debug;Release</Configurations>
         <Platforms>x64</Platforms>
-        <AssemblyVersion>1.1.0</AssemblyVersion>
-        <FileVersion>1.1.0</FileVersion>
+        <AssemblyVersion>1.1.1</AssemblyVersion>
+        <FileVersion>1.1.1</FileVersion>
         <ApplicationIcon>Resources\revit.ico</ApplicationIcon>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -93,6 +93,9 @@
     <ItemGroup>
         <None Remove="Resources\revit.ico"/>
         <Resource Include="Resources\revit.ico"/>
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="Services\ObservableRevitProcess.cs" />
     </ItemGroup>
 
     <Target Name="RemoveTranslationsAfterBuild" AfterTargets="AfterBuild">

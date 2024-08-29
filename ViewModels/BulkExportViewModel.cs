@@ -29,7 +29,7 @@ public class BulkExportViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> SaveModelsCommand { get; set; }
     public SaveOptionsViewModel SaveOptions { get; } = new();
 
-    public RevitServerTreeView ServerTreeView { get; set; }
+    public RevitServerTreeViewModel ServerTreeView { get; set; }
     public LoadingViewModel LoadingViewModel { get; set; } = new("Выбрать сервер");
 
     public ObservableCollection<string> ServerList { get; set; } = new();
@@ -47,7 +47,7 @@ public class BulkExportViewModel : ReactiveObject
         this.WhenAnyValue(x => x.SavePath)
             .Subscribe(x => { File.WriteAllText(".\\path", x); });
 
-        ServerTreeView = new RevitServerTreeView();
+        ServerTreeView = new RevitServerTreeViewModel();
         _rsSvc = Locator.Current.GetService<RevitServerService>()!;
         var ipcSvc = Locator.Current.GetService<IpcService>()!;
         ProcessesViewModel = Locator.Current.GetService<ProcessesViewModel>()!;

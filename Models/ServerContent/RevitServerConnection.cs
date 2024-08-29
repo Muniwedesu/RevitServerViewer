@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using Splat;
 using ILogger = Serilog.ILogger;
 
@@ -32,18 +33,33 @@ public class RevitServerConnection
         ServicePath = @"/RevitServerAdminRESTService" + version + @"/AdminRESTService.svc";
     }
 
-    public async Task<RevitFolder> GetFileStructureAsync(string path, CancellationToken ct)
+
+    public async Task<string?> TryGet(string path, string token, CancellationToken ct)
     {
-        // if (string.IsNullOrEmpty(path)) path = root;
-        path = path.Replace("\\", "|");
         try
         {
+            var contents = await Client.GetStringAsync($"http://{Host}{ServicePath}" + path + token, ct);
+            return contents;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    public async Task<RevitFolder> GetFileStructureAsync(string path, CancellationToken ct)
+    {
+        path = path.Replace("\\", "|");
+        if (!path.StartsWith(root)) path = root + path;
+
+        try
+        {
+            //TODO: handle canceled exception properly?
             if (ct.IsCancellationRequested) throw new TaskCanceledException();
-            if (!path.StartsWith(root)) path = root + path;
-            var requestPath = "http://" + Host + ServicePath + path;
-            //TODO: handle cancelled exception?
-            var resp = await Client.GetStringAsync($"http://{Host}{ServicePath}{path}{RequestTokens.Contents}", ct);
-            var folder = NetJSON.NetJSON.Deserialize<RevitFolder>(resp);
+
+            var folderContents = await TryGet(Uri.EscapeDataString(path), RequestTokens.Contents, ct);
+
+            var folder = NetJSON.NetJSON.Deserialize<RevitFolder>(folderContents);
             foreach (var fi in folder.FolderInfos)
             {
                 folder.RevitFolders.Add(await GetFileStructureAsync(path + (path == root ? "" : "|") + fi.Name, ct));
@@ -51,18 +67,7 @@ public class RevitServerConnection
 
             foreach (var m in folder.Models)
             {
-                var modelPath = requestPath + "|" + m.Name;
-                var re = await Client.GetStringAsync(modelPath + "/ModelInfo", ct);
-                var modelInfo = NetJSON.NetJSON.Deserialize<Dictionary<string, string>>(re)["DateModified"];
-                //ticks since epoch in milliseconds
-                var dat = modelInfo.Trim("/Date()".ToCharArray());
-                //1712823803000
-
-                var dt5 = DateTime.UnixEpoch;
-                // var date = dt5.AddMilliseconds(1712823803000);
-                var date = dt5.AddMilliseconds(Int64.Parse(dat));
-                m.FullName = folder.Path + "\\" + m.Name;
-                m.ModifiedDate = date;
+                (m.FullName, m.ModifiedDate) = await SetModelInfo(path, m.Name, folder.Path, ct);
                 _log?.Information("Load model: " + m);
             }
 
@@ -72,6 +77,19 @@ public class RevitServerConnection
         {
             return RevitFolder.Empty;
         }
+    }
+
+    private async Task<(string fullName, DateTime date)> SetModelInfo(string path, string modelName, string folderPath
+        , CancellationToken ct)
+    {
+        var re = await TryGet(Uri.EscapeDataString(path + "|" + modelName), RequestTokens.ModelInfo, ct);
+        var modelInfo = NetJSON.NetJSON.Deserialize<Dictionary<string, string>>(re)["DateModified"];
+
+        var dat = modelInfo.Trim("/Date()".ToCharArray());
+
+        var dt5 = DateTime.UnixEpoch;
+        var date = dt5.AddMilliseconds(Int64.Parse(dat));
+        return (folderPath + "\\" + modelName, date);
     }
 
     public async Task<RevitFolder> GetFileStructureAsync(CancellationToken token)

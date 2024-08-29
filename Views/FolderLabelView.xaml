@@ -18,8 +18,10 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-
-            <ContentControl Margin="0,0,4,0" Background="Transparent" PreviewMouseDown="ChevronMouseDown" Cursor="Hand">
+            <ContentControl Margin="0,0,4,0"
+                            Background="Transparent"
+                            PreviewMouseDown="ChevronMouseDown"
+                            Cursor="Hand">
                 <ui:SymbolIcon Height="24" Width="24" FontSize="10" Symbol="ChevronRight24" Filled="True">
                     <ui:SymbolIcon.Style>
                         <Style TargetType="ui:SymbolIcon">
@@ -30,6 +32,9 @@
                                 <Trigger Property="IsMouseOver" Value="False">
                                     <Setter Property="Opacity" Value="0.4"></Setter>
                                 </Trigger>
+                                <DataTrigger Binding="{Binding IsExpandable}" Value="false">
+                                    <Setter Property="Visibility" Value="Collapsed"></Setter>
+                                </DataTrigger>
                                 <DataTrigger Binding="{Binding IsExpanded}" Value="true">
                                     <Setter Property="RenderTransform">
                                         <Setter.Value>

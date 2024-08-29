@@ -26,5 +26,5 @@ public static class RequestTokens
 
     /// <code>GET /{modelPath}/modelInfo</code>
     /// <example>var info = RequestUri + ModelInfo</example>
-    public const string ModelInfo = "/modelInfo";
+    public const string ModelInfo = "/ModelInfo";
 }
